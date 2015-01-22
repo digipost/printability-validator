@@ -35,14 +35,15 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static no.digipost.print.validate.PdfValidateStrategy.FULLY_IN_MEMORY;
 import static no.digipost.print.validate.PdfValidateStrategy.NON_SEQUENTIALLY;
-import static no.digipost.print.validate.PdfValideringsFeil.*;
+import static no.digipost.print.validate.PdfValidationError.*;
 
 
-public class PrintPdfValidator {
+public class PdfValidator {
 
-	private static final Logger LOG = LoggerFactory.getLogger(PrintPdfValidator.class);
+	private static final Logger LOG = LoggerFactory.getLogger(PdfValidator.class);
 
 	private final PdfFontValidator fontValidator = new PdfFontValidator();
 
@@ -59,11 +60,11 @@ public class PrintPdfValidator {
 	public static final List<Float> PDF_VERSIONS_SUPPORTED_FOR_PRINT = Arrays.asList(1.0f, 1.1f, 1.2f, 1.3f, 1.4f, 1.5f);
 
 
-	public PdfValideringsResultat validerForPrint(byte[] content, PrintValideringsinnstillinger printValideringsinnstillinger) {
-		return validerForPrint(new ByteArrayInputStream(content), printValideringsinnstillinger, PdfValidateStrategy.FULLY_IN_MEMORY);
+	public PdfValidationResult validate(byte[] pdfContent, PdfValidationSettings printValideringsinnstillinger) {
+		return validerForPrint(new ByteArrayInputStream(pdfContent), printValideringsinnstillinger, PdfValidateStrategy.FULLY_IN_MEMORY);
 	}
 
-	public PdfValideringsResultat validerForPrint(File pdfFile, PrintValideringsinnstillinger printValideringsinnstillinger) throws IOException {
+	public PdfValidationResult validate(File pdfFile, PdfValidationSettings printValideringsinnstillinger) throws IOException {
 		InputStream pdfStream = openFileAsInputStream(pdfFile);
 		return validerForPrint(pdfStream, printValideringsinnstillinger, PdfValidateStrategy.FULLY_IN_MEMORY);
 	}
@@ -73,13 +74,13 @@ public class PrintPdfValidator {
 	 *                  this method
 	 * @param parseNonSequentially avgjør om PDF-en leses inn i minnet eller ei
 	 */
-	private PdfValideringsResultat validerForPrint(InputStream pdfStream, PrintValideringsinnstillinger printValideringsinnstillinger, PdfValidateStrategy readStrategy) {
+	private PdfValidationResult validerForPrint(InputStream pdfStream, PdfValidationSettings printValideringsinnstillinger, PdfValidateStrategy readStrategy) {
 		int antallSider = -1;
 		try {
-			List<PdfValideringsFeil> errors = new ArrayList<>();
+			List<PdfValidationError> errors;
 			try {
 				if (readStrategy == NON_SEQUENTIALLY) {
-					try (DpostNonSequentialPDFParser dpostNonSequentialPDFParser = new DpostNonSequentialPDFParser(pdfStream)){
+					try (EnhancedNonSequentialPDFParser dpostNonSequentialPDFParser = new EnhancedNonSequentialPDFParser(pdfStream)){
 						antallSider = dpostNonSequentialPDFParser.getNumberOfPages();
 						errors = validerStreamForPrint(dpostNonSequentialPDFParser, printValideringsinnstillinger);
 					}
@@ -88,14 +89,16 @@ public class PrintPdfValidator {
 						antallSider = pdDoc.getNumberOfPages();
 						errors = validerDokumentForPrint(pdDoc, printValideringsinnstillinger);
 					}
+				} else {
+					throw new IllegalArgumentException("Unknown " + PdfValidateStrategy.class.getSimpleName() + ": " + readStrategy);
 				}
 			} catch (Exception e) {
-				errors.add(PdfValideringsFeil.PDF_PARSE_ERROR);
+				errors = asList(PdfValidationError.PDF_PARSE_ERROR);
 				LOG.info("PDF-en kunne ikke parses. (" + e.getMessage() + ")");
 				LOG.debug(e.getMessage(), e);
 			}
 
-			return new PdfValideringsResultat(errors, antallSider);
+			return new PdfValidationResult(errors, antallSider);
 		} finally {
 			IOUtils.closeQuietly(pdfStream);
 		}
@@ -104,10 +107,10 @@ public class PrintPdfValidator {
 	/**
 	 * Leser ikke hele dokumentet inn i minnet
 	 */
-	private List<PdfValideringsFeil> validerStreamForPrint(DpostNonSequentialPDFParser dpostNonSequentialPDFParser,
-			PrintValideringsinnstillinger innstillinger) throws IOException {
+	private List<PdfValidationError> validerStreamForPrint(EnhancedNonSequentialPDFParser dpostNonSequentialPDFParser,
+			PdfValidationSettings innstillinger) throws IOException {
 
-		List<PdfValideringsFeil> errors = new ArrayList<>();
+		List<PdfValidationError> errors = new ArrayList<>();
 
 		if (dpostNonSequentialPDFParser.isEncrypted()) {
 			return failValidationIfEncrypted(errors);
@@ -177,9 +180,8 @@ public class PrintPdfValidator {
 	/**
 	 * Leser hele dokumentet inn i minnet
 	 */
-	private List<PdfValideringsFeil> validerDokumentForPrint(final PDDocument pdDoc, final PrintValideringsinnstillinger innstillinger)
-			throws IOException {
-		List<PdfValideringsFeil> errors = new ArrayList<>();
+	private List<PdfValidationError> validerDokumentForPrint(final PDDocument pdDoc, final PdfValidationSettings innstillinger)	throws IOException {
+		List<PdfValidationError> errors = new ArrayList<>();
 
 		if (pdDoc.isEncrypted()) {
 			return failValidationIfEncrypted(errors);
@@ -231,8 +233,8 @@ public class PrintPdfValidator {
 		return errors;
 	}
 
-	private void leggTilValideringsfeil(boolean dokumentHarSiderSomIkkeKanParses, PdfValideringsFeil valideringsfeil,
-			List<PdfValideringsFeil> errors) {
+	private void leggTilValideringsfeil(boolean dokumentHarSiderSomIkkeKanParses, PdfValidationError valideringsfeil,
+			List<PdfValidationError> errors) {
 		if (dokumentHarSiderSomIkkeKanParses) {
 			errors.add(valideringsfeil);
 		}
@@ -243,35 +245,35 @@ public class PrintPdfValidator {
 		return pdDoc.getDocumentCatalog().getAllPages();
 	}
 
-	private List<PdfValideringsFeil> failValidationIfEncrypted(List<PdfValideringsFeil> errors) {
-		errors.add(PdfValideringsFeil.PDF_IS_ENCRYPTED);
+	private List<PdfValidationError> failValidationIfEncrypted(List<PdfValidationError> errors) {
+		errors.add(PdfValidationError.PDF_IS_ENCRYPTED);
 		LOG.info("PDF-en er kryptert.");
 		return errors;
 	}
 
-	private void validerFonter(final Collection<PDFont> fonter, final List<PdfValideringsFeil> errors) {
+	private void validerFonter(final Collection<PDFont> fonter, final List<PdfValidationError> errors) {
 		if (!fontValidator.erSupporterteFonter(fonter)) {
-			errors.add(PdfValideringsFeil.REFERENCES_INVALID_FONT);
+			errors.add(PdfValidationError.REFERENCES_INVALID_FONT);
 			LOG.info("PDF-en har en referanse til en ugyldig font");
 		}
 
 	}
 
-	private void validerPdfVersjon(final float pdfVersion, final List<PdfValideringsFeil> errors) {
+	private void validerPdfVersjon(final float pdfVersion, final List<PdfValidationError> errors) {
 		if (!PDF_VERSIONS_SUPPORTED_FOR_PRINT.contains(pdfVersion)) {
-			errors.add(PdfValideringsFeil.UNSUPPORTED_PDF_VERSION_FOR_PRINT);
+			errors.add(PdfValidationError.UNSUPPORTED_PDF_VERSION_FOR_PRINT);
 			LOG.info("PDF-en har ikke en gylding versjon. Gyldige versjoner er {}. Faktisk versjon {}",
 					StringUtils.join(PDF_VERSIONS_SUPPORTED_FOR_PRINT, ", "), pdfVersion);
 		}
 	}
 
-	private void validerSideantall(final int numberOfPages, final List<PdfValideringsFeil> errors) {
+	private void validerSideantall(final int numberOfPages, final List<PdfValidationError> errors) {
 		if (numberOfPages > MAX_PAGES_FOR_AUTOMATED_PRINT) {
-			errors.add(PdfValideringsFeil.TOO_MANY_PAGES_FOR_AUTOMATED_PRINT);
+			errors.add(PdfValidationError.TOO_MANY_PAGES_FOR_AUTOMATED_PRINT);
 			LOG.info("PDF-en har for mange sider. Maksimum tillatt er {}. Faktisk antall er {}", MAX_PAGES_FOR_AUTOMATED_PRINT, numberOfPages);
 		}
 		if (numberOfPages == 0) {
-			errors.add(PdfValideringsFeil.DOCUMENT_HAS_NO_PAGES);
+			errors.add(PdfValidationError.DOCUMENT_HAS_NO_PAGES);
 			LOG.info("PDF-dokumentet inneholder ingen sider. Filen kan være korrupt.", numberOfPages);
 		}
 	}

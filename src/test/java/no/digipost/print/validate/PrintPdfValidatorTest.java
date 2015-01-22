@@ -15,111 +15,106 @@
  */
 package no.digipost.print.validate;
 
-import junit.framework.AssertionFailedError;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
-import static no.digipost.print.validate.PdfValideringsFeil.*;
-import static no.digipost.print.validate.PrintValideringsinnstillinger.SJEKK_ALLE;
+import static no.digipost.print.validate.PdfValidationError.*;
+import static no.digipost.print.validate.PdfValidationSettings.SJEKK_ALLE;
 import static org.apache.commons.lang3.Validate.notNull;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
 
 public class PrintPdfValidatorTest {
 
-	private final PrintPdfValidator pdfValidator = new PrintPdfValidator();
+	private final PdfValidator pdfValidator = new PdfValidator();
 
 
 	@Test
-	public void shouldValidatePdfForPrint() throws Exception {
-		assertHasExpectedValidationResult("/pdf/a4-left-margin-20mm.pdf", SJEKK_ALLE);
-		assertHasExpectedValidationResult("/pdf/a4-free-barcode-area.pdf", SJEKK_ALLE);
+	public void validatesPdfForPrint() {
+		assertThat(validationErrors("/pdf/a4-left-margin-20mm.pdf", SJEKK_ALLE), empty());
+		assertThat(validationErrors("/pdf/a4-free-barcode-area.pdf", SJEKK_ALLE), empty());
 	}
 
 	@Test
-	public void shouldFailDueToMissingEmbeddedFont() throws Exception {
-		assertHasExpectedValidationResult("/pdf/uten-embeddede-fonter.pdf", SJEKK_ALLE, REFERENCES_INVALID_FONT);
+	public void failsDueToMissingEmbeddedFont() {
+		assertThat(validationErrors("/pdf/uten-embeddede-fonter.pdf", SJEKK_ALLE), contains(REFERENCES_INVALID_FONT));
 	}
 
 	@Test
-	public void shouldNotFailDueToMissingEmbeddedFontIfCheckDisabledInSettings() throws Exception {
-		PrintValideringsinnstillinger innstillinger = new PrintValideringsinnstillinger(true, false, true, true);
-		assertHasExpectedValidationResult("/pdf/uten-embeddede-fonter.pdf", innstillinger);
+	public void doesNotFailDueToMissingEmbeddedFontIfCheckDisabledInSettings() {
+		PdfValidationSettings innstillinger = new PdfValidationSettings(true, false, true, true);
+		assertThat(validationErrors("/pdf/uten-embeddede-fonter.pdf", innstillinger), empty());
 	}
 
 	@Test
-	public void shouldFailDueToWrongVersion() throws Exception {
-		assertHasExpectedValidationResult("/pdf/pdf-version-17.pdf", SJEKK_ALLE, UNSUPPORTED_PDF_VERSION_FOR_PRINT,
-				UNSUPPORTED_DIMENSIONS);
+	public void failsDueToWrongVersion() {
+		assertThat(validationErrors("/pdf/pdf-version-17.pdf", SJEKK_ALLE), containsInAnyOrder(UNSUPPORTED_PDF_VERSION_FOR_PRINT, UNSUPPORTED_DIMENSIONS));
 	}
 
 	@Test
-	public void shouldNotFailDueToWrongVersionIfCheckDisabledInSettings() throws Exception {
-		PrintValideringsinnstillinger innstillinger = new PrintValideringsinnstillinger(true, true, true, false);
-		assertHasExpectedValidationResult("/pdf/pdf-version-17.pdf", innstillinger, UNSUPPORTED_DIMENSIONS);
+	public void doesNotFailDueToWrongVersionIfCheckDisabledInSettings() {
+		PdfValidationSettings innstillinger = new PdfValidationSettings(true, true, true, false);
+		assertThat(validationErrors("/pdf/pdf-version-17.pdf", innstillinger), contains(UNSUPPORTED_DIMENSIONS));
 	}
 
 	@Test
-	public void shouldFailValidationForPdfWithInsufficientMarginForPrint() throws Exception {
-		assertHasExpectedValidationResult("/pdf/a4-left-margin-17_5mm.pdf", SJEKK_ALLE,	INSUFFICIENT_MARGIN_FOR_PRINT);
+	public void failsPdfWithInsufficientMarginForPrint() {
+		assertThat(validationErrors("/pdf/a4-left-margin-17_5mm.pdf", SJEKK_ALLE), contains(INSUFFICIENT_MARGIN_FOR_PRINT));
 	}
 
 	@Test
-	public void shouldNotFailValidationForPdfWithInsufficientMarginForPrintIfCheckDisabled() throws Exception {
-		PrintValideringsinnstillinger innstillinger = new PrintValideringsinnstillinger(false, true, true, true);
-		assertHasExpectedValidationResult("/pdf/a4-left-margin-19_5mm.pdf", innstillinger);
+	public void doesNotFailPdfWithInsufficientMarginForPrintIfCheckDisabled() {
+		PdfValidationSettings innstillinger = new PdfValidationSettings(false, true, true, true);
+		assertThat(validationErrors("/pdf/a4-left-margin-19_5mm.pdf", innstillinger), empty());
 	}
 
 	@Test
-	public void shouldFailValidationForPdfWithTooManyPagesForPrint() throws Exception {
-		assertHasExpectedValidationResult("/pdf/a4-20pages.pdf", SJEKK_ALLE, TOO_MANY_PAGES_FOR_AUTOMATED_PRINT);
+	public void failsPdfWithTooManyPagesForPrint() {
+		assertThat(validationErrors("/pdf/a4-20pages.pdf", SJEKK_ALLE), contains(TOO_MANY_PAGES_FOR_AUTOMATED_PRINT));
 	}
 
 	@Test
-	public void shouldNotFailValidationForPdfWithTooManyPagesForPrintIfCheckDisabled() throws Exception {
-		PrintValideringsinnstillinger innstillinger = new PrintValideringsinnstillinger(true, true, false, true);
-		assertHasExpectedValidationResult("/pdf/a4-20pages.pdf", innstillinger);
+	public void doesNotFailPdfWithTooManyPagesForPrintIfCheckDisabled() {
+		PdfValidationSettings innstillinger = new PdfValidationSettings(true, true, false, true);
+		assertThat(validationErrors("/pdf/a4-20pages.pdf", innstillinger), empty());
 	}
 
 	@Test
-	public void shouldFailValidationForCorruptPdfResultingInNoPages() throws Exception {
-		assertHasExpectedValidationResult("/pdf/corrupt_no_pages.pdf", SJEKK_ALLE, DOCUMENT_HAS_NO_PAGES);
+	public void failsCorruptPdfResultingInNoPages() {
+		assertThat(validationErrors("/pdf/corrupt_no_pages.pdf", SJEKK_ALLE), contains(DOCUMENT_HAS_NO_PAGES));
 	}
 
 	@Test
-	public void shouldFailValidationForCorruptPdf() throws Exception {
-		assertHasExpectedValidationResult("/pdf/corrupt.pdf", SJEKK_ALLE, PDF_PARSE_ERROR);
+	public void failCorruptPdf() {
+		assertThat(validationErrors("/pdf/corrupt.pdf", SJEKK_ALLE), contains(PDF_PARSE_ERROR));
 	}
 
 	@Test
-	public void shouldFailValidationForPasswordProtectedPdf() throws Exception {
-		assertHasExpectedValidationResult("/pdf/encrypted-with-password.pdf", SJEKK_ALLE, PDF_IS_ENCRYPTED);
+	public void failsPasswordProtectedPdf() {
+		assertThat(validationErrors("/pdf/encrypted-with-password.pdf", SJEKK_ALLE), contains(PDF_IS_ENCRYPTED));
 	}
 
 	@Test
-	public void shouldFailValidationForPdfWithUnsupportedDimensionsForPrint() throws Exception {
-		assertHasExpectedValidationResult("/pdf/letter-left-margin-20mm.pdf", SJEKK_ALLE, UNSUPPORTED_DIMENSIONS);
-		assertHasExpectedValidationResult("/pdf/a4-landscape-left-margin-20mm.pdf", SJEKK_ALLE,	UNSUPPORTED_DIMENSIONS);
+	public void failsPdfWithUnsupportedDimensionsForPrint() {
+		assertThat(validationErrors("/pdf/letter-left-margin-20mm.pdf", SJEKK_ALLE), contains(UNSUPPORTED_DIMENSIONS));
+		assertThat(validationErrors("/pdf/a4-landscape-left-margin-20mm.pdf", SJEKK_ALLE), contains(UNSUPPORTED_DIMENSIONS));
 	}
 
 	@Test
-	public void shouldFailValidationForPdfWithInsufficientMarginAndUnsupportedDimensionsForPrint() throws Exception {
-		assertHasExpectedValidationResult("/pdf/a5-left-margin-15mm.pdf", SJEKK_ALLE, INSUFFICIENT_MARGIN_FOR_PRINT, UNSUPPORTED_DIMENSIONS);
+	public void failsPdfWithInsufficientMarginAndUnsupportedDimensionsForPrint() {
+		assertThat(validationErrors("/pdf/a5-left-margin-15mm.pdf", SJEKK_ALLE), containsInAnyOrder(INSUFFICIENT_MARGIN_FOR_PRINT, UNSUPPORTED_DIMENSIONS));
 	}
 
 
-	private void assertHasExpectedValidationResult(String pdfResourceName,
-	                                               PrintValideringsinnstillinger printValideringsinnstillinger, PdfValideringsFeil ... expectedErrors) throws IOException {
+	private List<PdfValidationError> validationErrors(String pdfResourceName, PdfValidationSettings printValideringsinnstillinger) {
 		File pdf = new File(notNull(getClass().getResource(pdfResourceName), pdfResourceName).getFile().replace("%20", " "));
-		PdfValideringsResultat result = pdfValidator.validerForPrint(pdf, printValideringsinnstillinger);
-
-		Set<PdfValideringsFeil> actualErrorSet = new HashSet<>(result.getValideringsFeil());
-		Set<PdfValideringsFeil> expectedErrorSet = new HashSet<>(Arrays.asList(expectedErrors));
-		if (!actualErrorSet.equals(expectedErrorSet)) {
-			throw new AssertionFailedError("Expected errors " + expectedErrorSet + ", but got " + actualErrorSet);
-		}
+		try {
+	        return pdfValidator.validate(pdf, printValideringsinnstillinger).errors;
+        } catch (IOException e) {
+	        throw new RuntimeException(e.getMessage(), e);
+        }
 	}
 }

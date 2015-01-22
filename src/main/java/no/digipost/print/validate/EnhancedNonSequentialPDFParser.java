@@ -23,14 +23,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
 
-class DpostNonSequentialPDFParser extends NonSequentialPDFParser implements AutoCloseable {
+/**
+ * Should not be used until
+ */
+class EnhancedNonSequentialPDFParser extends NonSequentialPDFParser implements AutoCloseable {
 
 	static {
 		// Ensures that the parser does not read the entire PDF to memory.
 		System.setProperty(NonSequentialPDFParser.SYSPROP_PARSEMINIMAL, "true");
 	}
 
-	public DpostNonSequentialPDFParser(InputStream in) throws IOException {
+	EnhancedNonSequentialPDFParser(InputStream in) throws IOException {
 		super(in);
 		super.initialParse();
 	}

@@ -137,7 +137,7 @@
 					<header>src/main/license-header.txt</header>
 					<strictCheck>true</strictCheck>
 					<excludes>
-						<exclude>LICENSE</exclude>
+						<exclude>LICENSE*</exclude>
 						<exclude>NOTICE</exclude>
 						<exclude>src/main/notice/NOTICE.template</exclude>
 						<exclude>**/*.pdf</exclude>

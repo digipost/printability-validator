@@ -15,21 +15,20 @@
  */
 package no.digipost.print.validate;
 
-public class PrintValideringsinnstillinger {
+public class PdfValidationSettings {
 
 	public final boolean validerVenstremarg;
 	public final boolean validerFonter;
 	public final boolean validerSideantall;
 	public final boolean validerPDFversjon;
 
-	public PrintValideringsinnstillinger(final boolean validerVenstremarg, final boolean validerFonter, final boolean validerSideantall,
-			final boolean validerPDFversjon) {
+	public PdfValidationSettings(boolean validerVenstremarg, boolean validerFonter, boolean validerSideantall, boolean validerPDFversjon) {
 		this.validerVenstremarg = validerVenstremarg;
 		this.validerFonter = validerFonter;
 		this.validerSideantall = validerSideantall;
 		this.validerPDFversjon = validerPDFversjon;
 	}
 
-	public static final PrintValideringsinnstillinger SJEKK_ALLE = new PrintValideringsinnstillinger(true, true, true, true);
+	public static final PdfValidationSettings SJEKK_ALLE = new PdfValidationSettings(true, true, true, true);
 
 }
