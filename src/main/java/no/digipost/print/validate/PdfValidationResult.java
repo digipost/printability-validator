@@ -30,7 +30,7 @@ public final class PdfValidationResult {
 
 	PdfValidationResult(List<PdfValidationError> errors, int pages) {
 		this.pages = pages;
-		this.errors = errors != null ? unmodifiableList(errors) : Collections.emptyList();
+		this.errors = errors != null ? unmodifiableList(errors) : Collections.<PdfValidationError>emptyList();
 		this.okForPrint = PdfValidationError.OK_FOR_PRINT.containsAll(this.errors);
 		this.okForWeb = PdfValidationError.OK_FOR_WEB.containsAll(this.errors);
 	}
