@@ -22,6 +22,8 @@ import static java.util.Collections.unmodifiableList;
 
 public final class PdfValidationResult {
 
+	public static final PdfValidationResult EVERYTHING_OK = new PdfValidationResult(Collections.<PdfValidationError>emptyList(), -1);
+
 	public final List<PdfValidationError> errors;
 	public final boolean okForPrint;
 	public final boolean okForWeb;
