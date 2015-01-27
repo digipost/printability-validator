@@ -72,7 +72,7 @@ public class PdfValidator {
 	/**
 	 * @param pdfStream the input stream for reading the PDF. It will be closed before returning from
 	 *                  this method
-	 * @param parseNonSequentially avgjør om PDF-en leses inn i minnet eller ei
+	 * @param readStrategy decides if PDF is completely read into memory or not
 	 */
 	private PdfValidationResult validerForPrint(InputStream pdfStream, PdfValidationSettings printValideringsinnstillinger, PdfValidateStrategy readStrategy) {
 		int antallSider = -1;

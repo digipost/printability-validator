@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptySet;
 import static org.apache.commons.lang3.StringUtils.deleteWhitespace;
 import static org.apache.commons.lang3.StringUtils.remove;
 
@@ -52,7 +53,7 @@ class PdfFontValidator {
 			Map<String, PDFont> fontMap = resources.getFonts();
 			return fontMap.values();
 		}
-		return Collections.emptySet();
+		return emptySet();
 	}
 
 	public boolean erSupporterteFonter(final Collection<PDFont> fonter) {
