@@ -24,13 +24,14 @@ import java.io.InputStream;
 import java.util.Set;
 
 /**
- * Should not be used until
+ * Should not be used until pdfbox 1.8.9 is released
+ * Requires rework when 2.0.0 is released.
  */
 class EnhancedNonSequentialPDFParser extends NonSequentialPDFParser implements AutoCloseable {
 
 	static {
 		// Ensures that the parser does not read the entire PDF to memory.
-		System.setProperty(NonSequentialPDFParser.SYSPROP_PARSEMINIMAL, "true");
+		System.setProperty(SYSPROP_PARSEMINIMAL, "true");
 	}
 
 	EnhancedNonSequentialPDFParser(InputStream in) throws IOException {
@@ -48,7 +49,7 @@ class EnhancedNonSequentialPDFParser extends NonSequentialPDFParser implements A
 
 	@Override
 	public PDPage getPage(int pageNr) throws IOException {
-		// Frigjør minne fortløpende
+		// Releases memory regularly
 		if (pageNr % 5 == 0) {
 			Set<COSObjectKey> cosObjectKeys = super.xrefTrailerResolver.getXrefTable().keySet();
 			for (COSObjectKey cosObjectKey : cosObjectKeys) {
@@ -59,8 +60,8 @@ class EnhancedNonSequentialPDFParser extends NonSequentialPDFParser implements A
 	}
 
 	@Override
-    public void close() {
+	public void close() {
 		this.clearResources();
-    }
+	}
 
 }
