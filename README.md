@@ -1,8 +1,7 @@
 # Digipost Printability Validator
 
-Library for validating 'printability' of documents.
+Library for validating 'printability' of PDF documents.
 
-## Features
-
-* TODO
+# Document Requirements
+ Please see documentation at https://www.digipost.no/plattform/masseutsendelser/print
 
