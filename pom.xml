@@ -10,7 +10,7 @@
 		<groupId>no.digipost</groupId>
 		<artifactId>digipost-open-super-pom</artifactId>
 		<version>0.3</version>
-		<relativePath />
+		<relativePath/>
 	</parent>
 
 	<artifactId>printability-validator</artifactId>
@@ -23,7 +23,7 @@
 		<maven.compiler.source>1.7</maven.compiler.source>
 		<maven.compiler.target>1.7</maven.compiler.target>
 	</properties>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -209,26 +209,26 @@
 				</executions>
 			</plugin>
 			<plugin>
-            	<groupId>org.codehaus.mojo</groupId>
-            	<artifactId>animal-sniffer-maven-plugin</artifactId>
-            	<version>1.13</version>
-            	<executions>
-            		<execution>
-            			<id>ensure-java7-compatible</id>
-            			<phase>verify</phase>
-            			<goals>
-            				<goal>check</goal>
-            			</goals>
-            			<configuration>
-            				<signature>
-            					<groupId>org.codehaus.mojo.signature</groupId>
-                				<artifactId>java17</artifactId>
-                				<version>1.0</version>
-            				</signature>
-            			</configuration>
-            		</execution>
-            	</executions>
-            </plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>animal-sniffer-maven-plugin</artifactId>
+				<version>1.13</version>
+				<executions>
+					<execution>
+						<id>ensure-java7-compatible</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+							<signature>
+								<groupId>org.codehaus.mojo.signature</groupId>
+								<artifactId>java17</artifactId>
+								<version>1.0</version>
+							</signature>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<artifactId>maven-enforcer-plugin</artifactId>
 				<version>1.3.1</version>
