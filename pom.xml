@@ -10,11 +10,11 @@
 		<groupId>no.digipost</groupId>
 		<artifactId>digipost-open-super-pom</artifactId>
 		<version>0.3</version>
-		<relativePath/>
+		<relativePath />
 	</parent>
 
 	<artifactId>printability-validator</artifactId>
-	<version>1.0-SNAPSHOT</version>
+	<version>1.0</version>
 	<name>Digipost Printability Validator</name>
 	<description>Library for validating 'printability' of documents.</description>
 
@@ -296,7 +296,7 @@
 		<connection>scm:git:git@github.com:digipost/printability-validator.git</connection>
 		<developerConnection>scm:git:git@github.com:digipost/printability-validator.git</developerConnection>
 		<url>https://github.com/digipost/printability-validator</url>
-		<tag>HEAD</tag>
+		<tag>1.0</tag>
 	</scm>
 
 </project>
