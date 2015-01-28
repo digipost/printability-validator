@@ -243,7 +243,7 @@
 							<rules>
 								<bannedDependencies>
 									<excludes>
-										<exclude>*:*:*:jar:compile</exclude>
+										<exclude>*:*</exclude>
 									</excludes>
 									<includes>
 										<include>org.apache.pdfbox:jempbox</include>
@@ -253,10 +253,15 @@
 										<include>org.slf4j:jul-to-slf4j</include>
 										<include>org.slf4j:jcl-over-slf4j</include>
 										<include>org.apache.commons:commons-lang3</include>
+										<include>ch.qos.logback:logback-core</include>
+										<include>ch.qos.logback:logback-classic</include>
+										<include>org.hamcrest:hamcrest-core</include>
+										<include>org.hamcrest:hamcrest-library</include>
+										<include>junit:junit</include>
 									</includes>
 									<searchTransitive>true</searchTransitive>
 									<message>
-										Maven-avhengigheter har forandret seg. Sjekk at alle lisenser er OK før distribusjon. Kjør også mvn notice:generate for å oppdatere NOTICE-fila.
+										Detected unknown dependencies! Verify that all licenses are OK, and run mvn notice:generate to update the NOTICE file.
 									</message>
 								</bannedDependencies>
 							</rules>
@@ -290,7 +295,7 @@
 	<scm>
 		<connection>scm:git:git@github.com:digipost/printability-validator.git</connection>
 		<developerConnection>scm:git:git@github.com:digipost/printability-validator.git</developerConnection>
-		<url>scm:git:git@github.com:digipost/printability-validator</url>
+		<url>https://github.com/digipost/printability-validator</url>
 		<tag>HEAD</tag>
 	</scm>
 
