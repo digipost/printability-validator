@@ -56,22 +56,23 @@ class PdfFontValidator {
 		return emptySet();
 	}
 
-	public boolean erSupporterteFonter(final Collection<PDFont> fonter) {
+	public List<PDFont> findNonSupportedFonts(Iterable<PDFont> fonter) {
+		List<PDFont> nonSupported = new ArrayList<>();
 		for (PDFont font : fonter) {
 			PDFontDescriptor fontDescriptor = font.getFontDescriptor();
 			if (fontDescriptor != null) {
-				if (! erFontDescriptorAkseptabelForPrint(fontDescriptor)) {
-					return false;
+				if (!erFontDescriptorAkseptabelForPrint(fontDescriptor)) {
+					nonSupported.add(font);
 				}
 			} else {
 				if (!(font instanceof PDType0Font)) {
 					if (!erAkseptabelForPrint(font.getBaseFont())) {
-						return false;
+						nonSupported.add(font);
 					}
 				}
 			}
 		}
-		return true;
+		return unmodifiableList(nonSupported);
 	}
 
 	private boolean erFontDescriptorAkseptabelForPrint(PDFontDescriptor fontDescriptor) {

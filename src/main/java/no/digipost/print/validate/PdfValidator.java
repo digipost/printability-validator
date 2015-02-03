@@ -32,13 +32,13 @@ import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import static java.util.Arrays.asList;
 import static no.digipost.print.validate.PdfValidateStrategy.FULLY_IN_MEMORY;
 import static no.digipost.print.validate.PdfValidateStrategy.NON_SEQUENTIALLY;
 import static no.digipost.print.validate.PdfValidationError.*;
+import static org.apache.commons.lang3.StringUtils.join;
 
 
 public class PdfValidator {
@@ -251,12 +251,22 @@ public class PdfValidator {
 		return errors;
 	}
 
-	private void validerFonter(final Collection<PDFont> fonter, final List<PdfValidationError> errors) {
-		if (!fontValidator.erSupporterteFonter(fonter)) {
+	private void validerFonter(final Iterable<PDFont> fonter, final List<PdfValidationError> errors) {
+		List<PDFont> nonSupportedFonts = fontValidator.findNonSupportedFonts(fonter);
+		if (!nonSupportedFonts.isEmpty()) {
 			errors.add(PdfValidationError.REFERENCES_INVALID_FONT);
-			LOG.info("PDF-en har en referanse til en ugyldig font");
+			if (LOG.isInfoEnabled()) {
+				LOG.info("PDF-en har referanser til en ugyldige fonter: [{}]", join(describe(nonSupportedFonts), ", "));
+			}
 		}
+	}
 
+	private List<String> describe(Iterable<PDFont> fonts) {
+		List<String> fontDescriptions = new ArrayList<>();
+		for (PDFont font : fonts) {
+			fontDescriptions.add(font.getSubType() + " '" + font.getBaseFont() + "'");
+		}
+		return fontDescriptions;
 	}
 
 	private void validerPdfVersjon(final float pdfVersion, final List<PdfValidationError> errors) {
