@@ -24,8 +24,8 @@ import java.util.*;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptySet;
-import static org.apache.commons.lang3.StringUtils.deleteWhitespace;
-import static org.apache.commons.lang3.StringUtils.remove;
+import static java.util.Collections.unmodifiableList;
+import static org.apache.commons.lang3.StringUtils.*;
 
 class PdfFontValidator {
 
@@ -91,7 +91,10 @@ class PdfFontValidator {
 	}
 
 	private boolean erAkseptabelForPrint(String fontnavn) {
-		String normalisertFontnavn = remove(deleteWhitespace(fontnavn), "-").toUpperCase();
+		if (fontnavn == null) {
+			return false;
+		}
+		String normalisertFontnavn = upperCase(deleteWhitespace(remove(fontnavn, "-")));
 		for (String supportertFontnavn : SUPPORTED_FONTS) {
 			if (normalisertFontnavn.contains(supportertFontnavn)) {
 				return true;

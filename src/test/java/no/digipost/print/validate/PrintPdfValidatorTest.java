@@ -108,6 +108,13 @@ public class PrintPdfValidatorTest {
 		assertThat(validationErrors("/pdf/a5-left-margin-15mm.pdf", SJEKK_ALLE), containsInAnyOrder(INSUFFICIENT_MARGIN_FOR_PRINT, UNSUPPORTED_DIMENSIONS));
 	}
 
+	@Test
+	public void pdfWithBogusFontsAndTooManyPages() {
+		assertThat(validationErrors("/pdf/15-pages-and-bogus-fonts.pdf", new PdfValidationSettings(true, false, false, true)), empty());
+		assertThat(validationErrors("/pdf/15-pages-and-bogus-fonts.pdf", new PdfValidationSettings(true, false, true, true)), contains(TOO_MANY_PAGES_FOR_AUTOMATED_PRINT));
+		assertThat(validationErrors("/pdf/15-pages-and-bogus-fonts.pdf", new PdfValidationSettings(true, true, false, true)), everyItem(is(REFERENCES_INVALID_FONT)));
+	}
+
 
 	private List<PdfValidationError> validationErrors(String pdfResourceName, PdfValidationSettings printValideringsinnstillinger) {
 		File pdf = new File(notNull(getClass().getResource(pdfResourceName), pdfResourceName).getFile().replace("%20", " "));
