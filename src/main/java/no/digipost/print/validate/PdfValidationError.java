@@ -24,8 +24,7 @@ import java.util.Set;
 public enum PdfValidationError {
 
 	PDF_IS_ENCRYPTED("PDF-dokumentet er kryptert."),
-	TOO_MANY_PAGES_FOR_AUTOMATED_PRINT("PDF-dokumentet inneholder for mange sider. Maksimum antall sider er "
-			+ PdfValidator.MAX_PAGES_FOR_AUTOMATED_PRINT + "."),
+	TOO_MANY_PAGES_FOR_AUTOMATED_PRINT("PDF-dokumentet inneholder for mange sider."),
 	UNSUPPORTED_PDF_VERSION_FOR_PRINT("PDF-dokumentets versjon støttes ikke. Støttede versjoner er "
 			+ StringUtils.join(PdfValidator.PDF_VERSIONS_SUPPORTED_FOR_PRINT, ", ") + "."),
 	INSUFFICIENT_MARGIN_FOR_PRINT("PDF-dokumentet har for liten venstremarg. Minimum venstremarg er " + PdfValidator.BARCODE_AREA_WIDTH_MM
