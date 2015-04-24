@@ -56,7 +56,6 @@ public class PdfValidator {
 	public static final int BARCODE_AREA_HEIGHT_MM = 70;
 	public static final int BARCODE_AREA_X_POS_MM = 0;
 	public static final int BARCODE_AREA_Y_POS_MM = 100;
-	public static final int MAX_PAGES_FOR_AUTOMATED_PRINT = 12;
 	public static final List<Float> PDF_VERSIONS_SUPPORTED_FOR_PRINT = Arrays.asList(1.0f, 1.1f, 1.2f, 1.3f, 1.4f, 1.5f);
 
 
@@ -117,7 +116,7 @@ public class PdfValidator {
 		}
 
 		if (innstillinger.validerSideantall) {
-			validerSideantall(dpostNonSequentialPDFParser.getNumberOfPages(), errors);
+			validerSideantall(dpostNonSequentialPDFParser.getNumberOfPages(),innstillinger.maksSideantall, errors);
 		}
 
 		if (innstillinger.validerPDFversjon) {
@@ -188,7 +187,7 @@ public class PdfValidator {
 		}
 
 		if (innstillinger.validerSideantall) {
-			validerSideantall(pdDoc.getNumberOfPages(), errors);
+			validerSideantall(pdDoc.getNumberOfPages(), innstillinger.maksSideantall, errors);
 		}
 
 		if (innstillinger.validerPDFversjon) {
@@ -277,10 +276,10 @@ public class PdfValidator {
 		}
 	}
 
-	private void validerSideantall(final int numberOfPages, final List<PdfValidationError> errors) {
-		if (numberOfPages > MAX_PAGES_FOR_AUTOMATED_PRINT) {
+	private void validerSideantall(final int numberOfPages, int maxPages, final List<PdfValidationError> errors) {
+		if (numberOfPages > maxPages) {
 			errors.add(PdfValidationError.TOO_MANY_PAGES_FOR_AUTOMATED_PRINT);
-			LOG.info("PDF-en har for mange sider. Maksimum tillatt er {}. Faktisk antall er {}", MAX_PAGES_FOR_AUTOMATED_PRINT, numberOfPages);
+			LOG.info("PDF-en har for mange sider. Maksimum tillatt er {}. Faktisk antall er {}", maxPages, numberOfPages);
 		}
 		if (numberOfPages == 0) {
 			errors.add(PdfValidationError.DOCUMENT_HAS_NO_PAGES);

@@ -20,15 +20,22 @@ public class PdfValidationSettings {
 	public final boolean validerVenstremarg;
 	public final boolean validerFonter;
 	public final boolean validerSideantall;
+    public final int maksSideantall;
 	public final boolean validerPDFversjon;
+    public static final int STANDARD_MAX_PAGES_FOR_AUTOMATED_PRINT = 12;
 
-	public PdfValidationSettings(boolean validerVenstremarg, boolean validerFonter, boolean validerSideantall, boolean validerPDFversjon) {
+    public PdfValidationSettings(boolean validerVenstremarg, boolean validerFonter, boolean validerSideantall, boolean validerPDFversjon) {
+        this(validerVenstremarg, validerFonter, validerSideantall, STANDARD_MAX_PAGES_FOR_AUTOMATED_PRINT, validerPDFversjon);
+    }
+
+	public PdfValidationSettings(boolean validerVenstremarg, boolean validerFonter, boolean validerSideantall, int maksSideantall, boolean validerPDFversjon) {
 		this.validerVenstremarg = validerVenstremarg;
 		this.validerFonter = validerFonter;
 		this.validerSideantall = validerSideantall;
+        this.maksSideantall = maksSideantall;
 		this.validerPDFversjon = validerPDFversjon;
 	}
 
-	public static final PdfValidationSettings SJEKK_ALLE = new PdfValidationSettings(true, true, true, true);
+	public static final PdfValidationSettings SJEKK_ALLE = new PdfValidationSettings(true, true, true, STANDARD_MAX_PAGES_FOR_AUTOMATED_PRINT, true);
 
 }
