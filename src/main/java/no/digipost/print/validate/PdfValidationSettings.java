@@ -36,6 +36,6 @@ public class PdfValidationSettings {
 		this.validerPDFversjon = validerPDFversjon;
 	}
 
-	public static final PdfValidationSettings SJEKK_ALLE = new PdfValidationSettings(true, true, true, STANDARD_MAX_PAGES_FOR_AUTOMATED_PRINT, true);
+	public static final PdfValidationSettings SJEKK_ALLE = new PdfValidationSettings(true, true, true, true);
 
 }
