@@ -22,7 +22,7 @@ public class PdfValidationSettings {
 	public final boolean validerSideantall;
     public final int maksSideantall;
 	public final boolean validerPDFversjon;
-    public static final int STANDARD_MAX_PAGES_FOR_AUTOMATED_PRINT = 12;
+    public static final int STANDARD_MAX_PAGES_FOR_AUTOMATED_PRINT = 14;
 
     public PdfValidationSettings(boolean validerVenstremarg, boolean validerFonter, boolean validerSideantall, boolean validerPDFversjon) {
         this(validerVenstremarg, validerFonter, validerSideantall, STANDARD_MAX_PAGES_FOR_AUTOMATED_PRINT, validerPDFversjon);
