@@ -25,6 +25,8 @@ PdfValidationResult pdfValidationResult =  pdfValidator.validate(pdf, printValid
 
 Krav til PDF dokumenter er tilgjengelig på https://www.digipost.no/plattform/annet/print
 
+Biblioteket er også tilgjengelig på [Maven Central](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22printability-validator%22).
+
 ## For avsendere som sender til utskrift via offentlig Sikker Digital Post (SDP) meldingsformidlertjeneste.
 
 I SDP utskriftstjenesten er det satt opp en felles valideringskonfigurasjon. Den er som følger:
