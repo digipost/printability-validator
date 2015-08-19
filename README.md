@@ -29,8 +29,8 @@ Krav til PDF dokumenter er tilgjengelig på https://www.digipost.no/plattform/an
 
 I SDP utskriftstjenesten er det satt opp en felles valideringskonfigurasjon. Den er som følger:
 
-´´´
+```
 PdfValidationSettings printValideringsinnstillinger = new PdfValidationSettings(false, true, false, true);
-´´´
+```
 
 [![Build Status](https://travis-ci.org/digipost/printability-validator.svg)](https://travis-ci.org/digipost/printability-validator)
