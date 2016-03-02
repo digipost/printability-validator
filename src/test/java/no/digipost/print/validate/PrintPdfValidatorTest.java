@@ -29,13 +29,15 @@ import static org.junit.Assert.assertThat;
 
 public class PrintPdfValidatorTest {
 
-	private final PdfValidator pdfValidator = new PdfValidator();
+	private static final PdfValidator pdfValidator = new PdfValidator();
 
 
 	@Test
 	public void validatesPdfForPrint() {
 		assertThat(validationErrors("/pdf/a4-left-margin-20mm.pdf", SJEKK_ALLE), empty());
 		assertThat(validationErrors("/pdf/a4-free-barcode-area.pdf", SJEKK_ALLE), empty());
+		assertThat(validationErrors("/pdf/a4-landscape.pdf", SJEKK_ALLE), empty());
+		assertThat(validationErrors("/pdf/a4-landscape-left-margin-20mm.pdf", SJEKK_ALLE), empty());
 	}
 
 	@Test
@@ -47,11 +49,6 @@ public class PrintPdfValidatorTest {
 	public void doesNotFailDueToMissingEmbeddedFontIfCheckDisabledInSettings() {
 		PdfValidationSettings innstillinger = new PdfValidationSettings(true, false, true, true);
 		assertThat(validationErrors("/pdf/uten-embeddede-fonter.pdf", innstillinger), empty());
-	}
-
-	@Test
-	public void failsDueToWrongVersion() {
-		assertThat(validationErrors("/pdf/pdf-version-17.pdf", SJEKK_ALLE), containsInAnyOrder(UNSUPPORTED_PDF_VERSION_FOR_PRINT, UNSUPPORTED_DIMENSIONS));
 	}
 
 	@Test
@@ -100,7 +97,6 @@ public class PrintPdfValidatorTest {
 	@Test
 	public void failsPdfWithUnsupportedDimensionsForPrint() {
 		assertThat(validationErrors("/pdf/letter-left-margin-20mm.pdf", SJEKK_ALLE), contains(UNSUPPORTED_DIMENSIONS));
-		assertThat(validationErrors("/pdf/a4-landscape-left-margin-20mm.pdf", SJEKK_ALLE), contains(UNSUPPORTED_DIMENSIONS));
 	}
 
 	@Test
@@ -116,8 +112,8 @@ public class PrintPdfValidatorTest {
 	}
 
 
-	private List<PdfValidationError> validationErrors(String pdfResourceName, PdfValidationSettings printValideringsinnstillinger) {
-		File pdf = new File(notNull(getClass().getResource(pdfResourceName), pdfResourceName).getFile().replace("%20", " "));
+	public static List<PdfValidationError> validationErrors(String pdfResourceName, PdfValidationSettings printValideringsinnstillinger) {
+		File pdf = new File(notNull(PrintPdfValidatorTest.class.getResource(pdfResourceName), pdfResourceName).getFile().replace("%20", " "));
 		try {
 	        return pdfValidator.validate(pdf, printValideringsinnstillinger).errors;
         } catch (IOException e) {

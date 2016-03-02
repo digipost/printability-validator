@@ -56,7 +56,7 @@ public class PdfValidator {
 	public static final int BARCODE_AREA_HEIGHT_MM = 70;
 	public static final int BARCODE_AREA_X_POS_MM = 0;
 	public static final int BARCODE_AREA_Y_POS_MM = 100;
-	public static final List<Float> PDF_VERSIONS_SUPPORTED_FOR_PRINT = Arrays.asList(1.0f, 1.1f, 1.2f, 1.3f, 1.4f, 1.5f);
+	public static final List<Float> PDF_VERSIONS_SUPPORTED_FOR_PRINT = Arrays.asList(1.0f, 1.1f, 1.2f, 1.3f, 1.4f, 1.5f, 1.6f, 1.7f);
 
 
 	public PdfValidationResult validate(byte[] pdfContent, PdfValidationSettings printValideringsinnstillinger) {
@@ -288,8 +288,20 @@ public class PdfValidator {
 	}
 
 	private boolean harTekstIStrekkodeomraade(final PDPage pdPage) throws IOException {
-		Rectangle2D leftMarginBarcodeArea = new Rectangle2D.Double(mmToPoints(BARCODE_AREA_X_POS_MM), mmToPoints(BARCODE_AREA_Y_POS_MM),
-				mmToPoints(BARCODE_AREA_WIDTH_MM), mmToPoints(BARCODE_AREA_HEIGHT_MM));
+		PDRectangle pageMediaBox = pdPage.findMediaBox();
+		int pageHeightInMillimeters = (int)pointsTomm(pageMediaBox.getHeight());
+		int pageWidthInMillimeters = (int)pointsTomm(pageMediaBox.getWidth());
+
+		Rectangle2D leftMarginBarcodeArea;
+		 if(isLandscapeA4(pageWidthInMillimeters, pageHeightInMillimeters)) {
+			leftMarginBarcodeArea = new Rectangle2D.Double(mmToPoints(BARCODE_AREA_Y_POS_MM),
+					mmToPoints(pageHeightInMillimeters-BARCODE_AREA_WIDTH_MM),
+					mmToPoints(BARCODE_AREA_HEIGHT_MM), mmToPoints(BARCODE_AREA_WIDTH_MM));
+		}else {
+			leftMarginBarcodeArea = new Rectangle2D.Double(mmToPoints(BARCODE_AREA_X_POS_MM), mmToPoints(BARCODE_AREA_Y_POS_MM),
+					mmToPoints(BARCODE_AREA_WIDTH_MM), mmToPoints(BARCODE_AREA_HEIGHT_MM));
+		}
+
 		return harTekstIOmraade(pdPage, leftMarginBarcodeArea);
 	}
 
@@ -297,14 +309,23 @@ public class PdfValidator {
 		PDRectangle pageMediaBox = page.findMediaBox();
 		long pageHeightInMillimeters = pointsTomm(pageMediaBox.getHeight());
 		long pageWidthInMillimeters = pointsTomm(pageMediaBox.getWidth());
-		if ((pageHeightInMillimeters != A4_HEIGHT_MM) || (pageWidthInMillimeters != A4_WIDTH_MM)) {
-			LOG.info("En eller flere sider i PDF-en har ikke godkjente dimensjoner.  Godkjente dimensjoner er bredde {} mm og høyde {} mm. "
-					+ "Faktiske dimensjoner er bredde {} mm og høyde: {} mm.", new Object[] { A4_WIDTH_MM, A4_HEIGHT_MM, pageWidthInMillimeters,
+		if (!isPortraitA4(pageWidthInMillimeters, pageHeightInMillimeters) && !isLandscapeA4(pageWidthInMillimeters, pageHeightInMillimeters)) {
+			LOG.info("En eller flere sider i PDF-en har ikke godkjente dimensjoner.  Godkjente dimensjoner er bredde {} mm og høyde {} mm, alt " +
+					"bredde {} mm og høyde {} mm. "
+					+ "Faktiske dimensjoner er bredde: {} mm og høyde: {} mm.", new Object[] { A4_WIDTH_MM, A4_HEIGHT_MM, A4_HEIGHT_MM, A4_WIDTH_MM, pageWidthInMillimeters,
 					pageHeightInMillimeters });
 			return true;
 		} else {
 			return false;
 		}
+	}
+
+	private static boolean isPortraitA4(long pageWidthInMillimeters, long pageHeightInMillimeters){
+		return pageWidthInMillimeters == A4_WIDTH_MM && pageHeightInMillimeters == A4_HEIGHT_MM;
+	}
+
+	private static boolean isLandscapeA4(long pageWidthInMillimeters, long pageHeightInMillimeters){
+		return pageWidthInMillimeters == A4_HEIGHT_MM && pageHeightInMillimeters == A4_WIDTH_MM;
 	}
 
 	private boolean harTekstIOmraade(final PDPage pdPage, final Rectangle2D area) throws IOException {
