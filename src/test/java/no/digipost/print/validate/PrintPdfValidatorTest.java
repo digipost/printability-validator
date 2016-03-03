@@ -31,13 +31,13 @@ public class PrintPdfValidatorTest {
 
 	private static final PdfValidator pdfValidator = new PdfValidator();
 
-
 	@Test
 	public void validatesPdfForPrint() {
 		assertThat(validationErrors("/pdf/a4-left-margin-20mm.pdf", SJEKK_ALLE), empty());
-		assertThat(validationErrors("/pdf/a4-free-barcode-area.pdf", SJEKK_ALLE), empty());
-		assertThat(validationErrors("/pdf/a4-landscape.pdf", SJEKK_ALLE), empty());
 		assertThat(validationErrors("/pdf/a4-landscape-left-margin-20mm.pdf", SJEKK_ALLE), empty());
+		assertThat(validationErrors("/pdf/a4-free-barcode-area.pdf", SJEKK_ALLE), empty());
+		assertThat(validationErrors("/pdf/a4-landscape-free-barcode-area.pdf", SJEKK_ALLE), empty());
+		assertThat(validationErrors("/pdf/a4-landscape.pdf", SJEKK_ALLE), empty());
 	}
 
 	@Test
@@ -52,20 +52,16 @@ public class PrintPdfValidatorTest {
 	}
 
 	@Test
-	public void doesNotFailDueToWrongVersionIfCheckDisabledInSettings() {
-		PdfValidationSettings innstillinger = new PdfValidationSettings(true, true, true, false);
-		assertThat(validationErrors("/pdf/pdf-version-17.pdf", innstillinger), contains(UNSUPPORTED_DIMENSIONS));
-	}
-
-	@Test
 	public void failsPdfWithInsufficientMarginForPrint() {
 		assertThat(validationErrors("/pdf/a4-left-margin-17_5mm.pdf", SJEKK_ALLE), contains(INSUFFICIENT_MARGIN_FOR_PRINT));
+		assertThat(validationErrors("/pdf/a4-landscape-left-margin-17_5mm.pdf", SJEKK_ALLE), contains(INSUFFICIENT_MARGIN_FOR_PRINT));
 	}
 
 	@Test
 	public void doesNotFailPdfWithInsufficientMarginForPrintIfCheckDisabled() {
 		PdfValidationSettings innstillinger = new PdfValidationSettings(false, true, true, true);
 		assertThat(validationErrors("/pdf/a4-left-margin-19_5mm.pdf", innstillinger), empty());
+		assertThat(validationErrors("/pdf/a4-landscape-left-margin-19_5mm.pdf", innstillinger), empty());
 	}
 
 	@Test
@@ -97,11 +93,13 @@ public class PrintPdfValidatorTest {
 	@Test
 	public void failsPdfWithUnsupportedDimensionsForPrint() {
 		assertThat(validationErrors("/pdf/letter-left-margin-20mm.pdf", SJEKK_ALLE), contains(UNSUPPORTED_DIMENSIONS));
+		assertThat(validationErrors("/pdf/letter-landscape-left-margin-20mm.pdf", SJEKK_ALLE), contains(UNSUPPORTED_DIMENSIONS));
 	}
 
 	@Test
 	public void failsPdfWithInsufficientMarginAndUnsupportedDimensionsForPrint() {
 		assertThat(validationErrors("/pdf/a5-left-margin-15mm.pdf", SJEKK_ALLE), containsInAnyOrder(INSUFFICIENT_MARGIN_FOR_PRINT, UNSUPPORTED_DIMENSIONS));
+		assertThat(validationErrors("/pdf/a5-landscape-left-margin-15mm.pdf", SJEKK_ALLE), containsInAnyOrder(INSUFFICIENT_MARGIN_FOR_PRINT, UNSUPPORTED_DIMENSIONS));
 	}
 
 	@Test
