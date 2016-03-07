@@ -288,19 +288,10 @@ public class PdfValidator {
 	}
 
 	private boolean harTekstIStrekkodeomraade(final PDPage pdPage) throws IOException {
-		PDRectangle pageMediaBox = pdPage.findMediaBox();
-		int pageHeightInMillimeters = (int)pointsTomm(pageMediaBox.getHeight());
-		int pageWidthInMillimeters = (int)pointsTomm(pageMediaBox.getWidth());
-
-		Rectangle2D leftMarginBarcodeArea;
-		 if(isLandscapeA4(pageWidthInMillimeters, pageHeightInMillimeters)) {
-			leftMarginBarcodeArea = new Rectangle2D.Double(mmToPoints(BARCODE_AREA_Y_POS_MM),
-					mmToPoints(pageHeightInMillimeters-BARCODE_AREA_WIDTH_MM),
-					mmToPoints(BARCODE_AREA_HEIGHT_MM), mmToPoints(BARCODE_AREA_WIDTH_MM));
-		}else {
-			leftMarginBarcodeArea = new Rectangle2D.Double(mmToPoints(BARCODE_AREA_X_POS_MM), mmToPoints(BARCODE_AREA_Y_POS_MM),
-					mmToPoints(BARCODE_AREA_WIDTH_MM), mmToPoints(BARCODE_AREA_HEIGHT_MM));
-		}
+		SilentZone silentZone = new SilentZone(pdPage.findMediaBox());
+		
+		Rectangle2D leftMarginBarcodeArea = new Rectangle2D.Double(silentZone.upperLeftCornerX,
+				silentZone.upperLeftCornerY, silentZone.silentZoneXSize, silentZone.silentZoneYSize);
 
 		return harTekstIOmraade(pdPage, leftMarginBarcodeArea);
 	}
@@ -344,14 +335,63 @@ public class PdfValidator {
 		return new BufferedInputStream(Files.newInputStream(pdfFile.toPath()));
 	}
 
-	private double mmToPoints(final int sizeInMillimeters) {
+	private static double mmToPoints(final int sizeInMillimeters) {
 		BigDecimal points = new BigDecimal(sizeInMillimeters * MM_TO_POINTS);
 		points = points.setScale(1, RoundingMode.DOWN);
 		return points.doubleValue();
 	}
 
-	private long pointsTomm(final double sizeInPoints) {
+	private static long pointsTomm(final double sizeInPoints) {
 		return Math.round(sizeInPoints / MM_TO_POINTS);
 	}
 
+	private static class SilentZone {
+		public final double upperLeftCornerX;
+		public final double upperLeftCornerY;
+		public final double silentZoneXSize;
+		public final double silentZoneYSize;
+
+		private SilentZone(PDRectangle pageMediaBox) {
+			int pageHeightInMillimeters = (int)pointsTomm(pageMediaBox.getHeight());
+			int pageWidthInMillimeters = (int)pointsTomm(pageMediaBox.getWidth());
+			boolean isLandscape = isLandscapeA4(pageWidthInMillimeters, pageHeightInMillimeters);
+
+			this.upperLeftCornerX = upperLeftCornerX(isLandscape);
+			this.upperLeftCornerY = upperLeftCornerY(isLandscape, pageHeightInMillimeters);
+			this.silentZoneXSize = zoneXSize(isLandscape);
+			this.silentZoneYSize = zoneYSize(isLandscape);
+		}
+
+		private double upperLeftCornerX(boolean isLandscape){
+			if(isLandscape){
+				return mmToPoints(BARCODE_AREA_Y_POS_MM);
+			} else {
+				return mmToPoints(BARCODE_AREA_X_POS_MM);
+			}
+		}
+
+		private double upperLeftCornerY(boolean isLandscape, int pageHeightInMillimeters){
+			if(isLandscape){
+				return mmToPoints(pageHeightInMillimeters-BARCODE_AREA_WIDTH_MM);
+			} else {
+				return mmToPoints(BARCODE_AREA_Y_POS_MM);
+			}
+		}
+
+		private double zoneXSize(boolean isLandscape){
+			if(isLandscape){
+				return mmToPoints(BARCODE_AREA_HEIGHT_MM);
+			} else {
+				return mmToPoints(BARCODE_AREA_WIDTH_MM);
+			}
+		}
+
+		private double zoneYSize(boolean isLandscape){
+			if(isLandscape){
+				return mmToPoints(BARCODE_AREA_WIDTH_MM);
+			} else {
+				return mmToPoints(BARCODE_AREA_HEIGHT_MM);
+			}
+		}
+	}
 }
