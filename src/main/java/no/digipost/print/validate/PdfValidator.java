@@ -50,6 +50,8 @@ public class PdfValidator {
 	// MM_TO_UNITS copied from org.apache.pdfbox.pdmodel.PDPage
 	private static final double MM_TO_POINTS = 1 / (10 * 2.54f) * 72;
 
+	public static final double MM_VALIDATION_FLEXIBILITY = 10;
+
 	public static final int A4_HEIGHT_MM = 297;
 	public static final int A4_WIDTH_MM = 210;
 	public static final int BARCODE_AREA_WIDTH_MM = 18;
@@ -288,7 +290,7 @@ public class PdfValidator {
 	}
 
 	private boolean harTekstIStrekkodeomraade(final PDPage pdPage) throws IOException {
-		SilentZone silentZone = new SilentZone(pdPage.findMediaBox());
+		SilentZone silentZone = new SilentZone(pdPage.findCropBox());
 		
 		Rectangle2D leftMarginBarcodeArea = new Rectangle2D.Double(silentZone.upperLeftCornerX,
 				silentZone.upperLeftCornerY, silentZone.silentZoneXSize, silentZone.silentZoneYSize);
@@ -297,14 +299,15 @@ public class PdfValidator {
 	}
 
 	private boolean harUgyldigeDimensjoner(final PDPage page) {
-		PDRectangle pageMediaBox = page.findMediaBox();
-		long pageHeightInMillimeters = pointsTomm(pageMediaBox.getHeight());
-		long pageWidthInMillimeters = pointsTomm(pageMediaBox.getWidth());
+		PDRectangle findCropBox = page.findCropBox();
+		long pageHeightInMillimeters = pointsTomm(findCropBox.getHeight());
+		long pageWidthInMillimeters = pointsTomm(findCropBox.getWidth());
 		if (!isPortraitA4(pageWidthInMillimeters, pageHeightInMillimeters) && !isLandscapeA4(pageWidthInMillimeters, pageHeightInMillimeters)) {
 			LOG.info("En eller flere sider i PDF-en har ikke godkjente dimensjoner.  Godkjente dimensjoner er bredde {} mm og høyde {} mm, alt " +
-					"bredde {} mm og høyde {} mm. "
-					+ "Faktiske dimensjoner er bredde: {} mm og høyde: {} mm.", new Object[] { A4_WIDTH_MM, A4_HEIGHT_MM, A4_HEIGHT_MM, A4_WIDTH_MM, pageWidthInMillimeters,
-					pageHeightInMillimeters });
+					"bredde {} mm og høyde {} mm med {} mm slingringsmonn ned. "
+					+ "Faktiske dimensjoner er bredde: {} mm og høyde: {} mm.",
+					new Object[] { A4_WIDTH_MM, A4_HEIGHT_MM, A4_HEIGHT_MM, A4_WIDTH_MM, MM_VALIDATION_FLEXIBILITY,
+							pageWidthInMillimeters, pageHeightInMillimeters });
 			return true;
 		} else {
 			return false;
@@ -312,7 +315,8 @@ public class PdfValidator {
 	}
 
 	private static boolean isPortraitA4(long pageWidthInMillimeters, long pageHeightInMillimeters){
-		return pageWidthInMillimeters == A4_WIDTH_MM && pageHeightInMillimeters == A4_HEIGHT_MM;
+		return pageWidthInMillimeters <= A4_WIDTH_MM && pageWidthInMillimeters >= A4_WIDTH_MM - MM_VALIDATION_FLEXIBILITY
+				&& pageHeightInMillimeters <= A4_HEIGHT_MM && pageHeightInMillimeters >= A4_HEIGHT_MM - MM_VALIDATION_FLEXIBILITY;
 	}
 
 	private static boolean isLandscapeA4(long pageWidthInMillimeters, long pageHeightInMillimeters){
@@ -351,9 +355,9 @@ public class PdfValidator {
 		public final double silentZoneXSize;
 		public final double silentZoneYSize;
 
-		private SilentZone(PDRectangle pageMediaBox) {
-			int pageHeightInMillimeters = (int)pointsTomm(pageMediaBox.getHeight());
-			int pageWidthInMillimeters = (int)pointsTomm(pageMediaBox.getWidth());
+		private SilentZone(PDRectangle findCropBox) {
+			int pageHeightInMillimeters = (int)pointsTomm(findCropBox.getHeight());
+			int pageWidthInMillimeters = (int)pointsTomm(findCropBox.getWidth());
 			boolean isLandscape = isLandscapeA4(pageWidthInMillimeters, pageHeightInMillimeters);
 
 			this.upperLeftCornerX = upperLeftCornerX(isLandscape);

@@ -34,7 +34,7 @@ public enum PdfValidationError {
 	PDF_PARSE_ERROR("Kunne ikke parse PDF-dokumentet."),
 	PDF_PARSE_PAGE_ERROR("Kunne ikke parse minst én av sidene i PDF-dokumentet"),
 	UNSUPPORTED_DIMENSIONS("PDF-dokumentets dimensjoner støttes ikke. Støttede dimensjoner er A4 (" + PdfValidator.A4_WIDTH_MM + " mm x "
-			+ PdfValidator.A4_HEIGHT_MM + " mm)"),
+			+ PdfValidator.A4_HEIGHT_MM + " mm) med " + PdfValidator.MM_VALIDATION_FLEXIBILITY + " mm slingringsmonn ned."),
 	REFERENCES_INVALID_FONT("Dokumentet refererer til en ikke-standard font som ikke er inkludert i PDF-en."),
 	DOCUMENT_TOO_SMALL("PDF-dokumentets størrelse er for liten."),
 	INVALID_PDF("PDF-dokumentet er ikke gyldig."),
