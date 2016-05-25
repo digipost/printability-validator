@@ -38,7 +38,14 @@ public class PrintPdfValidatorTest {
 		assertThat(validationErrors("/pdf/a4-free-barcode-area.pdf", SJEKK_ALLE), empty());
 		assertThat(validationErrors("/pdf/nearly-a4-free-barcode-area.pdf", SJEKK_ALLE), empty());
 		assertThat(validationErrors("/pdf/a4-landscape-free-barcode-area.pdf", SJEKK_ALLE), empty());
+		assertThat(validationErrors("/pdf/nearly-a4-rotated_free-barcode-area.pdf", SJEKK_ALLE), empty());
 		assertThat(validationErrors("/pdf/a4-landscape.pdf", SJEKK_ALLE), empty());
+
+		assertThat(validationErrors("/pdf/a4-left-margin-20mm_v16.pdf", SJEKK_ALLE), empty());
+		assertThat(validationErrors("/pdf/a4-landscape_v16.pdf", SJEKK_ALLE), empty());
+
+		assertThat(validationErrors("/pdf/a4-left-margin-20mm_v17.pdf", SJEKK_ALLE), empty());
+		assertThat(validationErrors("/pdf/a4-landscape_v17.pdf", SJEKK_ALLE), empty());
 	}
 
 	@Test
@@ -54,9 +61,8 @@ public class PrintPdfValidatorTest {
 
 	@Test
 	public void failsPdfWithInsufficientMarginForPrint() {
-		assertThat(validationErrors("/pdf/a4-left-margin-17_5mm.pdf", SJEKK_ALLE), contains(INSUFFICIENT_MARGIN_FOR_PRINT));
-		assertThat(validationErrors("/pdf/a4-landscape-left-margin-17_5mm.pdf", SJEKK_ALLE), contains(INSUFFICIENT_MARGIN_FOR_PRINT));
 		assertThat(validationErrors("/pdf/far-from-a4-free-barcode-area.pdf", SJEKK_ALLE), contains(UNSUPPORTED_DIMENSIONS, INSUFFICIENT_MARGIN_FOR_PRINT));
+		assertThat(validationErrors("/pdf/a4-full-page.pdf", SJEKK_ALLE), contains(INSUFFICIENT_MARGIN_FOR_PRINT));
 	}
 
 	@Test

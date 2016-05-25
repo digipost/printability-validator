@@ -54,10 +54,10 @@ public class PdfValidator {
 
 	public static final int A4_HEIGHT_MM = 297;
 	public static final int A4_WIDTH_MM = 210;
-	public static final int BARCODE_AREA_WIDTH_MM = 18;
-	public static final int BARCODE_AREA_HEIGHT_MM = 70;
+	public static final int BARCODE_AREA_WIDTH_MM = 15;
+	public static final int BARCODE_AREA_HEIGHT_MM = 80;
 	public static final int BARCODE_AREA_X_POS_MM = 0;
-	public static final int BARCODE_AREA_Y_POS_MM = 100;
+	public static final int BARCODE_AREA_Y_POS_MM = 95;
 	public static final List<Float> PDF_VERSIONS_SUPPORTED_FOR_PRINT = Arrays.asList(1.0f, 1.1f, 1.2f, 1.3f, 1.4f, 1.5f, 1.6f, 1.7f);
 
 
