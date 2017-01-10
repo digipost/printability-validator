@@ -61,13 +61,13 @@ public class PdfValidator {
 	public static final List<Float> PDF_VERSIONS_SUPPORTED_FOR_PRINT = Arrays.asList(1.0f, 1.1f, 1.2f, 1.3f, 1.4f, 1.5f, 1.6f, 1.7f);
 
 
-	public PdfValidationResult validate(byte[] pdfContent, PdfValidationSettings printValideringsinnstillinger) {
-		return validerForPrint(new ByteArrayInputStream(pdfContent), printValideringsinnstillinger, PdfValidateStrategy.FULLY_IN_MEMORY);
+	public PdfValidationResult validate(byte[] pdfContent, PdfValidationSettings printValidationSettings) {
+		return validateForPrint(new ByteArrayInputStream(pdfContent), printValidationSettings, PdfValidateStrategy.FULLY_IN_MEMORY);
 	}
 
 	public PdfValidationResult validate(File pdfFile, PdfValidationSettings printValideringsinnstillinger) throws IOException {
 		InputStream pdfStream = openFileAsInputStream(pdfFile);
-		return validerForPrint(pdfStream, printValideringsinnstillinger, PdfValidateStrategy.FULLY_IN_MEMORY);
+		return validateForPrint(pdfStream, printValideringsinnstillinger, PdfValidateStrategy.FULLY_IN_MEMORY);
 	}
 
 	/**
@@ -75,31 +75,31 @@ public class PdfValidator {
 	 *                  this method
 	 * @param readStrategy decides if PDF is completely read into memory or not
 	 */
-	private PdfValidationResult validerForPrint(InputStream pdfStream, PdfValidationSettings printValideringsinnstillinger, PdfValidateStrategy readStrategy) {
-		int antallSider = -1;
+	private PdfValidationResult validateForPrint(InputStream pdfStream, PdfValidationSettings printValidationSettings, PdfValidateStrategy readStrategy) {
+		int numberOfPages = -1;
 		try {
 			List<PdfValidationError> errors;
 			try {
 				if (readStrategy == NON_SEQUENTIALLY) {
 					try (EnhancedNonSequentialPDFParser dpostNonSequentialPDFParser = new EnhancedNonSequentialPDFParser(pdfStream)){
-						antallSider = dpostNonSequentialPDFParser.getNumberOfPages();
-						errors = validerStreamForPrint(dpostNonSequentialPDFParser, printValideringsinnstillinger);
+						numberOfPages = dpostNonSequentialPDFParser.getNumberOfPages();
+						errors = validateStreamForPrint(dpostNonSequentialPDFParser, printValidationSettings);
 					}
 				} else if (readStrategy == FULLY_IN_MEMORY) {
 					try (PDDocument pdDoc = PDDocument.load(pdfStream)) {
-						antallSider = pdDoc.getNumberOfPages();
-						errors = validerDokumentForPrint(pdDoc, printValideringsinnstillinger);
+						numberOfPages = pdDoc.getNumberOfPages();
+						errors = validateDocumentForPrint(pdDoc, printValidationSettings);
 					}
 				} else {
 					throw new IllegalArgumentException("Unknown " + PdfValidateStrategy.class.getSimpleName() + ": " + readStrategy);
 				}
 			} catch (Exception e) {
 				errors = asList(PdfValidationError.PDF_PARSE_ERROR);
-				LOG.info("PDF-en kunne ikke parses. (" + e.getMessage() + ")");
+				LOG.info("PDF could not be parsed. (" + e.getMessage() + ")");
 				LOG.debug(e.getMessage(), e);
 			}
 
-			return new PdfValidationResult(errors, antallSider);
+			return new PdfValidationResult(errors, numberOfPages);
 		} finally {
 			IOUtils.closeQuietly(pdfStream);
 		}
@@ -108,8 +108,8 @@ public class PdfValidator {
 	/**
 	 * Leser ikke hele dokumentet inn i minnet
 	 */
-	private List<PdfValidationError> validerStreamForPrint(EnhancedNonSequentialPDFParser dpostNonSequentialPDFParser,
-			PdfValidationSettings innstillinger) throws IOException {
+	private List<PdfValidationError> validateStreamForPrint(EnhancedNonSequentialPDFParser dpostNonSequentialPDFParser,
+															PdfValidationSettings settings) throws IOException {
 
 		List<PdfValidationError> errors = new ArrayList<>();
 
@@ -117,62 +117,62 @@ public class PdfValidator {
 			return failValidationIfEncrypted(errors);
 		}
 
-		if (innstillinger.validerSideantall) {
-			validerSideantall(dpostNonSequentialPDFParser.getNumberOfPages(),innstillinger.maksSideantall, errors);
+		if (settings.validateNumberOfPages) {
+			validerSideantall(dpostNonSequentialPDFParser.getNumberOfPages(), settings.maxNumberOfPages, errors);
 		}
 
-		if (innstillinger.validerPDFversjon) {
-			validerPdfVersjon(dpostNonSequentialPDFParser.getDocument().getVersion(), errors);
+		if (settings.validatePDFversion) {
+			validatePdfVersion(dpostNonSequentialPDFParser.getDocument().getVersion(), errors);
 		}
 
-		boolean dokumentHarUgyldigeDimensjoner = false;
-		boolean dokumentHarSiderHvisMarginIkkeLarSegVerifisereForPrint = false;
-		boolean dokumentHarUgyldigVenstremarg = false;
-		boolean dokumentHarSiderSomIkkeKanParses = false;
+		boolean documentHasInvalidDimensions = false;
+		boolean documentContainsPagesWithInvalidPrintMargins = false;
+		boolean documentHasInvalidLeftMargin = false;
+		boolean documentHasPagesWhichCannotBeParsed = false;
 		for (int i = 1; i <= dpostNonSequentialPDFParser.getNumberOfPages(); i++) {
 			PDPage page = null;
 			try {
 				page = dpostNonSequentialPDFParser.getPage(i);
 			} catch (Exception e) {
-				dokumentHarSiderSomIkkeKanParses = true;
+				documentHasPagesWhichCannotBeParsed = true;
 			}
 			if (page != null) {
 
-				if (!dokumentHarUgyldigeDimensjoner) {
-					if (harUgyldigeDimensjoner(page)) {
-						dokumentHarUgyldigeDimensjoner = true;
+				if (!documentHasInvalidDimensions) {
+					if (hasInvalidDimensions(page)) {
+						documentHasInvalidDimensions = true;
 					}
 				}
 
-				if (innstillinger.validerVenstremarg) {
-					if (!dokumentHarUgyldigVenstremarg) {
+				if (settings.validateLeftMargin) {
+					if (!documentHasInvalidLeftMargin) {
 						try {
-							if (harTekstIStrekkodeomraade(page)) {
-								dokumentHarUgyldigVenstremarg = true;
+							if (hasTextInBarcodeArea(page)) {
+								documentHasInvalidLeftMargin = true;
 							}
 						} catch (NullPointerException npe) {
-							LOG.info("Klarte ikke å verifiserere margen på side " + i);
-							dokumentHarSiderHvisMarginIkkeLarSegVerifisereForPrint = true;
+							LOG.info("Could not verify margin on the following side " + i);
+							documentContainsPagesWithInvalidPrintMargins = true;
 						}
 					}
 
 				}
 
-				if (innstillinger.validerFonter) {
-					validerFonter(fontValidator.getPageFonts(page), errors);
+				if (settings.validateFonts) {
+					validateFonts(fontValidator.getPageFonts(page), errors);
 				}
 
 			} else {
 				// TODO en eller annen algoritme som kaster feil om et visst antall
 				// sider ikke kan parses
-				LOG.warn("Klarte ikke å hente side nummer {} i pdf-en", i);
+				LOG.warn("Could not fetch page {} in the pdf", i);
 			}
 		}
 
-		leggTilValideringsfeil(dokumentHarUgyldigeDimensjoner, UNSUPPORTED_DIMENSIONS, errors);
-		leggTilValideringsfeil(dokumentHarUgyldigVenstremarg, INSUFFICIENT_MARGIN_FOR_PRINT, errors);
-		leggTilValideringsfeil(dokumentHarSiderSomIkkeKanParses, PDF_PARSE_PAGE_ERROR, errors);
-		leggTilValideringsfeil(dokumentHarSiderHvisMarginIkkeLarSegVerifisereForPrint, UNABLE_TO_VERIFY_SUITABLE_MARGIN_FOR_PRINT, errors);
+		addValidationError(documentHasInvalidDimensions, UNSUPPORTED_DIMENSIONS, errors);
+		addValidationError(documentHasInvalidLeftMargin, INSUFFICIENT_MARGIN_FOR_PRINT, errors);
+		addValidationError(documentHasPagesWhichCannotBeParsed, PDF_PARSE_PAGE_ERROR, errors);
+		addValidationError(documentContainsPagesWithInvalidPrintMargins, UNABLE_TO_VERIFY_SUITABLE_MARGIN_FOR_PRINT, errors);
 
 		return errors;
 
@@ -181,63 +181,63 @@ public class PdfValidator {
 	/**
 	 * Leser hele dokumentet inn i minnet
 	 */
-	private List<PdfValidationError> validerDokumentForPrint(final PDDocument pdDoc, final PdfValidationSettings innstillinger)	throws IOException {
+	private List<PdfValidationError> validateDocumentForPrint(final PDDocument pdDoc, final PdfValidationSettings settings)	throws IOException {
 		List<PdfValidationError> errors = new ArrayList<>();
 
 		if (pdDoc.isEncrypted()) {
 			return failValidationIfEncrypted(errors);
 		}
 
-		if (innstillinger.validerSideantall) {
-			validerSideantall(pdDoc.getNumberOfPages(), innstillinger.maksSideantall, errors);
+		if (settings.validateNumberOfPages) {
+			validerSideantall(pdDoc.getNumberOfPages(), settings.maxNumberOfPages, errors);
 		}
 
-		if (innstillinger.validerPDFversjon) {
-			validerPdfVersjon(pdDoc.getDocument().getVersion(), errors);
+		if (settings.validatePDFversion) {
+			validatePdfVersion(pdDoc.getDocument().getVersion(), errors);
 		}
 
-		boolean dokumentHarUgyldigeDimensjoner = false;
+		boolean documentHasInvalidDimensions = false;
 		for (PDPage page : getAllPagesFrom(pdDoc)) {
-			if (harUgyldigeDimensjoner(page)) {
-				dokumentHarUgyldigeDimensjoner = true;
+			if (hasInvalidDimensions(page)) {
+				documentHasInvalidDimensions = true;
 				break;
 			}
 		}
 
-		leggTilValideringsfeil(dokumentHarUgyldigeDimensjoner, UNSUPPORTED_DIMENSIONS, errors);
+		addValidationError(documentHasInvalidDimensions, UNSUPPORTED_DIMENSIONS, errors);
 
-		boolean harTekstIStrekkodeomraade = false;
-		boolean dokumentHarSiderHvisMarginIkkeLarSegVerifisereForPrint = false;
-		if (innstillinger.validerVenstremarg) {
+		boolean hasTextInBarcodeArea = false;
+		boolean documentContainsPagesWithInvalidPrintMargins = false;
+		if (settings.validateLeftMargin) {
 			for (PDPage page : getAllPagesFrom(pdDoc)) {
 				try {
-					if (harTekstIStrekkodeomraade(page)) {
-						harTekstIStrekkodeomraade = true;
+					if (hasTextInBarcodeArea(page)) {
+						hasTextInBarcodeArea = true;
 						break;
 					}
 				} catch (NullPointerException npe) {
-					dokumentHarSiderHvisMarginIkkeLarSegVerifisereForPrint = true;
-					LOG.info("Klarte ikke å verifiserere margen på en side");
+					documentContainsPagesWithInvalidPrintMargins = true;
+					LOG.info("Could not validate the margin on one of the sides");
 				}
 			}
 		}
 
-		leggTilValideringsfeil(dokumentHarSiderHvisMarginIkkeLarSegVerifisereForPrint, UNABLE_TO_VERIFY_SUITABLE_MARGIN_FOR_PRINT, errors);
-		leggTilValideringsfeil(harTekstIStrekkodeomraade, INSUFFICIENT_MARGIN_FOR_PRINT, errors);
+		addValidationError(documentContainsPagesWithInvalidPrintMargins, UNABLE_TO_VERIFY_SUITABLE_MARGIN_FOR_PRINT, errors);
+		addValidationError(hasTextInBarcodeArea, INSUFFICIENT_MARGIN_FOR_PRINT, errors);
 
-		if (innstillinger.validerFonter) {
+		if (settings.validateFonts) {
 			for (PDPage page : getAllPagesFrom(pdDoc)) {
-				validerFonter(fontValidator.getPageFonts(page), errors);
+				validateFonts(fontValidator.getPageFonts(page), errors);
 			}
 		}
 
 		return errors;
 	}
 
-	private void leggTilValideringsfeil(boolean dokumentHarSiderSomIkkeKanParses, PdfValidationError valideringsfeil,
-			List<PdfValidationError> errors) {
-		if (dokumentHarSiderSomIkkeKanParses) {
-			errors.add(valideringsfeil);
+	private void addValidationError(boolean documentContainsPagesThatCannotBeParsed, PdfValidationError validationErrors,
+									List<PdfValidationError> errors) {
+		if (documentContainsPagesThatCannotBeParsed) {
+			errors.add(validationErrors);
 		}
 	}
 
@@ -248,16 +248,16 @@ public class PdfValidator {
 
 	private List<PdfValidationError> failValidationIfEncrypted(List<PdfValidationError> errors) {
 		errors.add(PdfValidationError.PDF_IS_ENCRYPTED);
-		LOG.info("PDF-en er kryptert.");
+		LOG.info("The pdf is encrypted.");
 		return errors;
 	}
 
-	private void validerFonter(final Iterable<PDFont> fonter, final List<PdfValidationError> errors) {
+	private void validateFonts(final Iterable<PDFont> fonter, final List<PdfValidationError> errors) {
 		List<PDFont> nonSupportedFonts = fontValidator.findNonSupportedFonts(fonter);
 		if (!nonSupportedFonts.isEmpty()) {
 			errors.add(PdfValidationError.REFERENCES_INVALID_FONT);
 			if (LOG.isInfoEnabled()) {
-				LOG.info("PDF-en har referanser til en ugyldige fonter: [{}]", join(describe(nonSupportedFonts), ", "));
+				LOG.info("The PDF has references to invalid fonts: [{}]", join(describe(nonSupportedFonts), ", "));
 			}
 		}
 	}
@@ -270,10 +270,10 @@ public class PdfValidator {
 		return fontDescriptions;
 	}
 
-	private void validerPdfVersjon(final float pdfVersion, final List<PdfValidationError> errors) {
+	private void validatePdfVersion(final float pdfVersion, final List<PdfValidationError> errors) {
 		if (!PDF_VERSIONS_SUPPORTED_FOR_PRINT.contains(pdfVersion)) {
 			errors.add(PdfValidationError.UNSUPPORTED_PDF_VERSION_FOR_PRINT);
-			LOG.info("PDF-en har ikke en gylding versjon. Gyldige versjoner er {}. Faktisk versjon {}",
+			LOG.info("The PDF is not in valid version. Valid versions are {}. Actual version is {}",
 					StringUtils.join(PDF_VERSIONS_SUPPORTED_FOR_PRINT, ", "), pdfVersion);
 		}
 	}
@@ -281,31 +281,31 @@ public class PdfValidator {
 	private void validerSideantall(final int numberOfPages, int maxPages, final List<PdfValidationError> errors) {
 		if (numberOfPages > maxPages) {
 			errors.add(PdfValidationError.TOO_MANY_PAGES_FOR_AUTOMATED_PRINT);
-			LOG.info("PDF-en har for mange sider. Maksimum tillatt er {}. Faktisk antall er {}", maxPages, numberOfPages);
+			LOG.info("The PDF has too many pages. Max number of pages is {}. Actual number of pages is {}", maxPages, numberOfPages);
 		}
 		if (numberOfPages == 0) {
 			errors.add(PdfValidationError.DOCUMENT_HAS_NO_PAGES);
-			LOG.info("PDF-dokumentet inneholder ingen sider. Filen kan være korrupt.", numberOfPages);
+			LOG.info("The PDF document does not contain any pages. The file may be corrupt.", numberOfPages);
 		}
 	}
 
-	private boolean harTekstIStrekkodeomraade(final PDPage pdPage) throws IOException {
+	private boolean hasTextInBarcodeArea(final PDPage pdPage) throws IOException {
 		SilentZone silentZone = new SilentZone(pdPage.findCropBox());
 		
 		Rectangle2D leftMarginBarcodeArea = new Rectangle2D.Double(silentZone.upperLeftCornerX,
 				silentZone.upperLeftCornerY, silentZone.silentZoneXSize, silentZone.silentZoneYSize);
 
-		return harTekstIOmraade(pdPage, leftMarginBarcodeArea);
+		return hasTextInArea(pdPage, leftMarginBarcodeArea);
 	}
 
-	private boolean harUgyldigeDimensjoner(final PDPage page) {
+	private boolean hasInvalidDimensions(final PDPage page) {
 		PDRectangle findCropBox = page.findCropBox();
 		long pageHeightInMillimeters = pointsTomm(findCropBox.getHeight());
 		long pageWidthInMillimeters = pointsTomm(findCropBox.getWidth());
 		if (!isPortraitA4(pageWidthInMillimeters, pageHeightInMillimeters) && !isLandscapeA4(pageWidthInMillimeters, pageHeightInMillimeters)) {
-			LOG.info("En eller flere sider i PDF-en har ikke godkjente dimensjoner.  Godkjente dimensjoner er bredde {} mm og høyde {} mm, alt " +
-					"bredde {} mm og høyde {} mm med {} mm slingringsmonn ned. "
-					+ "Faktiske dimensjoner er bredde: {} mm og høyde: {} mm.",
+			LOG.info("One or more pages in the PDF has invalid dimensions.  Valid dimensions are width {} mm and height {} mm, alt " +
+					"width {} mm og height {} mm with {} mm lower flexibility. "
+					+ "Actual dimensions are width: {} mm and height: {} mm.",
 					new Object[] { A4_WIDTH_MM, A4_HEIGHT_MM, A4_HEIGHT_MM, A4_WIDTH_MM, MM_VALIDATION_FLEXIBILITY,
 							pageWidthInMillimeters, pageHeightInMillimeters });
 			return true;
@@ -323,7 +323,7 @@ public class PdfValidator {
 		return pageWidthInMillimeters == A4_HEIGHT_MM && pageHeightInMillimeters == A4_WIDTH_MM;
 	}
 
-	private boolean harTekstIOmraade(final PDPage pdPage, final Rectangle2D area) throws IOException {
+	private boolean hasTextInArea(final PDPage pdPage, final Rectangle2D area) throws IOException {
 		boolean hasTextInArea = false;
 		final PDFTextStripperByArea stripper = new PDFTextStripperByArea();
 		stripper.addRegion("marginArea", area);

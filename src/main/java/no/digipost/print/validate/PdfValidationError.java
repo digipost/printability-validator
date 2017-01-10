@@ -23,22 +23,22 @@ import java.util.Set;
 
 public enum PdfValidationError {
 
-	PDF_IS_ENCRYPTED("PDF-dokumentet er kryptert."),
-	TOO_MANY_PAGES_FOR_AUTOMATED_PRINT("PDF-dokumentet inneholder for mange sider."),
-	UNSUPPORTED_PDF_VERSION_FOR_PRINT("PDF-dokumentets versjon støttes ikke. Støttede versjoner er "
+	PDF_IS_ENCRYPTED("The PDF document is encrypted."),
+	TOO_MANY_PAGES_FOR_AUTOMATED_PRINT("The PDF document contains too many pages."),
+	UNSUPPORTED_PDF_VERSION_FOR_PRINT("The version of the PDF document is not supported. Supported versions are "
 			+ StringUtils.join(PdfValidator.PDF_VERSIONS_SUPPORTED_FOR_PRINT, ", ") + "."),
-	INSUFFICIENT_MARGIN_FOR_PRINT("PDF-dokumentet har for liten venstremarg. Minimum venstremarg er " + PdfValidator.BARCODE_AREA_WIDTH_MM
+	INSUFFICIENT_MARGIN_FOR_PRINT("The left margin of the PDF document is too thin. Minimum left margin is " + PdfValidator.BARCODE_AREA_WIDTH_MM
 			+ " mm."),
-	UNABLE_TO_VERIFY_SUITABLE_MARGIN_FOR_PRINT("Kunne ikke verifisere venstremargen for PDF-dokumentet. Minimum venstremarg er "
+	UNABLE_TO_VERIFY_SUITABLE_MARGIN_FOR_PRINT("Could not verify the left margin of the PDF document. Minimum left margin is "
 			+ PdfValidator.BARCODE_AREA_WIDTH_MM + " mm."),
-	PDF_PARSE_ERROR("Kunne ikke parse PDF-dokumentet."),
-	PDF_PARSE_PAGE_ERROR("Kunne ikke parse minst én av sidene i PDF-dokumentet"),
-	UNSUPPORTED_DIMENSIONS("PDF-dokumentets dimensjoner støttes ikke. Støttede dimensjoner er A4 (" + PdfValidator.A4_WIDTH_MM + " mm x "
-			+ PdfValidator.A4_HEIGHT_MM + " mm) med " + PdfValidator.MM_VALIDATION_FLEXIBILITY + " mm slingringsmonn ned."),
-	REFERENCES_INVALID_FONT("Dokumentet refererer til en ikke-standard font som ikke er inkludert i PDF-en."),
-	DOCUMENT_TOO_SMALL("PDF-dokumentets størrelse er for liten."),
-	INVALID_PDF("PDF-dokumentet er ikke gyldig."),
-	DOCUMENT_HAS_NO_PAGES("PDF-dokumentet inneholder ingen sider. Filen kan være korrupt.");
+	PDF_PARSE_ERROR("Could not parse the PDF document."),
+	PDF_PARSE_PAGE_ERROR("Could not parse at least oen of the pages in the PDF document"),
+	UNSUPPORTED_DIMENSIONS("The dimensions of the PDF document is not supported. Supported dimensions are A4 (" + PdfValidator.A4_WIDTH_MM + " mm x "
+			+ PdfValidator.A4_HEIGHT_MM + " mm) with " + PdfValidator.MM_VALIDATION_FLEXIBILITY + " mm lower flexibility."),
+	REFERENCES_INVALID_FONT("The document refers to a non-standard font that is not included in the PDF."),
+	DOCUMENT_TOO_SMALL("The PDF document size is too small."),
+	INVALID_PDF("The PDF document is invalid."),
+	DOCUMENT_HAS_NO_PAGES("The PDF document does not contain any pages. The file may be corrupt.");
 
 	static final Set<PdfValidationError> OK_FOR_PRINT = Collections.emptySet();
 	static final Set<PdfValidationError> OK_FOR_WEB = EnumSet.of(
