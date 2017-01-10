@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static no.digipost.print.validate.PdfValidationError.*;
-import static no.digipost.print.validate.PdfValidationSettings.SJEKK_ALLE;
+import static no.digipost.print.validate.PdfValidationSettings.CHECK_ALL;
 import static org.apache.commons.lang3.Validate.notNull;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
@@ -33,24 +33,24 @@ public class PrintPdfValidatorTest {
 
 	@Test
 	public void validatesPdfForPrint() {
-		assertThat(validationErrors("/pdf/a4-left-margin-20mm.pdf", SJEKK_ALLE), empty());
-		assertThat(validationErrors("/pdf/a4-landscape-left-margin-20mm.pdf", SJEKK_ALLE), empty());
-		assertThat(validationErrors("/pdf/a4-free-barcode-area.pdf", SJEKK_ALLE), empty());
-		assertThat(validationErrors("/pdf/nearly-a4-free-barcode-area.pdf", SJEKK_ALLE), empty());
-		assertThat(validationErrors("/pdf/a4-landscape-free-barcode-area.pdf", SJEKK_ALLE), empty());
-		assertThat(validationErrors("/pdf/nearly-a4-rotated_free-barcode-area.pdf", SJEKK_ALLE), empty());
-		assertThat(validationErrors("/pdf/a4-landscape.pdf", SJEKK_ALLE), empty());
+		assertThat(validationErrors("/pdf/a4-left-margin-20mm.pdf", CHECK_ALL), empty());
+		assertThat(validationErrors("/pdf/a4-landscape-left-margin-20mm.pdf", CHECK_ALL), empty());
+		assertThat(validationErrors("/pdf/a4-free-barcode-area.pdf", CHECK_ALL), empty());
+		assertThat(validationErrors("/pdf/nearly-a4-free-barcode-area.pdf", CHECK_ALL), empty());
+		assertThat(validationErrors("/pdf/a4-landscape-free-barcode-area.pdf", CHECK_ALL), empty());
+		assertThat(validationErrors("/pdf/nearly-a4-rotated_free-barcode-area.pdf", CHECK_ALL), empty());
+		assertThat(validationErrors("/pdf/a4-landscape.pdf", CHECK_ALL), empty());
 
-		assertThat(validationErrors("/pdf/a4-left-margin-20mm_v16.pdf", SJEKK_ALLE), empty());
-		assertThat(validationErrors("/pdf/a4-landscape_v16.pdf", SJEKK_ALLE), empty());
+		assertThat(validationErrors("/pdf/a4-left-margin-20mm_v16.pdf", CHECK_ALL), empty());
+		assertThat(validationErrors("/pdf/a4-landscape_v16.pdf", CHECK_ALL), empty());
 
-		assertThat(validationErrors("/pdf/a4-left-margin-20mm_v17.pdf", SJEKK_ALLE), empty());
-		assertThat(validationErrors("/pdf/a4-landscape_v17.pdf", SJEKK_ALLE), empty());
+		assertThat(validationErrors("/pdf/a4-left-margin-20mm_v17.pdf", CHECK_ALL), empty());
+		assertThat(validationErrors("/pdf/a4-landscape_v17.pdf", CHECK_ALL), empty());
 	}
 
 	@Test
 	public void failsDueToMissingEmbeddedFont() {
-		assertThat(validationErrors("/pdf/uten-embeddede-fonter.pdf", SJEKK_ALLE), contains(REFERENCES_INVALID_FONT));
+		assertThat(validationErrors("/pdf/uten-embeddede-fonter.pdf", CHECK_ALL), contains(REFERENCES_INVALID_FONT));
 	}
 
 	@Test
@@ -61,8 +61,8 @@ public class PrintPdfValidatorTest {
 
 	@Test
 	public void failsPdfWithInsufficientMarginForPrint() {
-		assertThat(validationErrors("/pdf/far-from-a4-free-barcode-area.pdf", SJEKK_ALLE), contains(UNSUPPORTED_DIMENSIONS, INSUFFICIENT_MARGIN_FOR_PRINT));
-		assertThat(validationErrors("/pdf/a4-full-page.pdf", SJEKK_ALLE), contains(INSUFFICIENT_MARGIN_FOR_PRINT));
+		assertThat(validationErrors("/pdf/far-from-a4-free-barcode-area.pdf", CHECK_ALL), contains(UNSUPPORTED_DIMENSIONS, INSUFFICIENT_MARGIN_FOR_PRINT));
+		assertThat(validationErrors("/pdf/a4-full-page.pdf", CHECK_ALL), contains(INSUFFICIENT_MARGIN_FOR_PRINT));
 	}
 
 	@Test
@@ -74,7 +74,7 @@ public class PrintPdfValidatorTest {
 
 	@Test
 	public void failsPdfWithTooManyPagesForPrint() {
-		assertThat(validationErrors("/pdf/a4-20pages.pdf", SJEKK_ALLE), contains(TOO_MANY_PAGES_FOR_AUTOMATED_PRINT));
+		assertThat(validationErrors("/pdf/a4-20pages.pdf", CHECK_ALL), contains(TOO_MANY_PAGES_FOR_AUTOMATED_PRINT));
 	}
 
 	@Test
@@ -85,30 +85,30 @@ public class PrintPdfValidatorTest {
 
 	@Test
 	public void failsCorruptPdfResultingInNoPages() {
-		assertThat(validationErrors("/pdf/corrupt_no_pages.pdf", SJEKK_ALLE), contains(DOCUMENT_HAS_NO_PAGES));
+		assertThat(validationErrors("/pdf/corrupt_no_pages.pdf", CHECK_ALL), contains(DOCUMENT_HAS_NO_PAGES));
 	}
 
 	@Test
 	public void failCorruptPdf() {
-		assertThat(validationErrors("/pdf/corrupt.pdf", SJEKK_ALLE), contains(PDF_PARSE_ERROR));
+		assertThat(validationErrors("/pdf/corrupt.pdf", CHECK_ALL), contains(PDF_PARSE_ERROR));
 	}
 
 	@Test
 	public void failsPasswordProtectedPdf() {
-		assertThat(validationErrors("/pdf/encrypted-with-password.pdf", SJEKK_ALLE), contains(PDF_IS_ENCRYPTED));
+		assertThat(validationErrors("/pdf/encrypted-with-password.pdf", CHECK_ALL), contains(PDF_IS_ENCRYPTED));
 	}
 
 	@Test
 	public void failsPdfWithUnsupportedDimensionsForPrint() {
-		assertThat(validationErrors("/pdf/letter-left-margin-20mm.pdf", SJEKK_ALLE), contains(UNSUPPORTED_DIMENSIONS));
-		assertThat(validationErrors("/pdf/letter-landscape-left-margin-20mm.pdf", SJEKK_ALLE), contains(UNSUPPORTED_DIMENSIONS));
-		assertThat(validationErrors("/pdf/far-from-a4-free-barcode-area.pdf", SJEKK_ALLE), contains(UNSUPPORTED_DIMENSIONS, INSUFFICIENT_MARGIN_FOR_PRINT));
+		assertThat(validationErrors("/pdf/letter-left-margin-20mm.pdf", CHECK_ALL), contains(UNSUPPORTED_DIMENSIONS));
+		assertThat(validationErrors("/pdf/letter-landscape-left-margin-20mm.pdf", CHECK_ALL), contains(UNSUPPORTED_DIMENSIONS));
+		assertThat(validationErrors("/pdf/far-from-a4-free-barcode-area.pdf", CHECK_ALL), contains(UNSUPPORTED_DIMENSIONS, INSUFFICIENT_MARGIN_FOR_PRINT));
 	}
 
 	@Test
 	public void failsPdfWithInsufficientMarginAndUnsupportedDimensionsForPrint() {
-		assertThat(validationErrors("/pdf/a5-left-margin-15mm.pdf", SJEKK_ALLE), containsInAnyOrder(INSUFFICIENT_MARGIN_FOR_PRINT, UNSUPPORTED_DIMENSIONS));
-		assertThat(validationErrors("/pdf/a5-landscape-left-margin-15mm.pdf", SJEKK_ALLE), containsInAnyOrder(INSUFFICIENT_MARGIN_FOR_PRINT, UNSUPPORTED_DIMENSIONS));
+		assertThat(validationErrors("/pdf/a5-left-margin-15mm.pdf", CHECK_ALL), containsInAnyOrder(INSUFFICIENT_MARGIN_FOR_PRINT, UNSUPPORTED_DIMENSIONS));
+		assertThat(validationErrors("/pdf/a5-landscape-left-margin-15mm.pdf", CHECK_ALL), containsInAnyOrder(INSUFFICIENT_MARGIN_FOR_PRINT, UNSUPPORTED_DIMENSIONS));
 	}
 
 	@Test
@@ -118,11 +118,20 @@ public class PrintPdfValidatorTest {
 		assertThat(validationErrors("/pdf/15-pages-and-bogus-fonts.pdf", new PdfValidationSettings(true, true, false, true)), everyItem(is(REFERENCES_INVALID_FONT)));
 	}
 
+	@Test
+	public void doesNotFailPDFLargerThatA4WhenBleedSettingIsActivated() {
+		assertThat(validationErrors("/pdf/a4-pdf-with-10mm-bleed.pdf", new PdfValidationSettings(true, true, true, true, 10)), empty());
+	}
 
-	public static List<PdfValidationError> validationErrors(String pdfResourceName, PdfValidationSettings printValideringsinnstillinger) {
+	@Test
+	public void failsForPDFLargerThatA4WhenBleedSettingIsInactive() {
+		assertThat(validationErrors("/pdf/a4-pdf-with-10mm-bleed.pdf", CHECK_ALL), containsInAnyOrder(UNSUPPORTED_DIMENSIONS));
+	}
+
+	public static List<PdfValidationError> validationErrors(String pdfResourceName, PdfValidationSettings printValidationSettings) {
 		File pdf = new File(notNull(PrintPdfValidatorTest.class.getResource(pdfResourceName), pdfResourceName).getFile().replace("%20", " "));
 		try {
-	        return pdfValidator.validate(pdf, printValideringsinnstillinger).errors;
+	        return pdfValidator.validate(pdf, printValidationSettings).errors;
         } catch (IOException e) {
 	        throw new RuntimeException(e.getMessage(), e);
         }

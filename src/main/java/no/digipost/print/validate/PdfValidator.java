@@ -50,7 +50,7 @@ public class PdfValidator {
 	// MM_TO_UNITS copied from org.apache.pdfbox.pdmodel.PDPage
 	private static final double MM_TO_POINTS = 1 / (10 * 2.54f) * 72;
 
-	public static final double MM_VALIDATION_FLEXIBILITY = 10;
+	public static final int MM_VALIDATION_FLEXIBILITY = 10;
 
 	public static final int A4_HEIGHT_MM = 297;
 	public static final int A4_WIDTH_MM = 210;
@@ -65,9 +65,9 @@ public class PdfValidator {
 		return validateForPrint(new ByteArrayInputStream(pdfContent), printValidationSettings, PdfValidateStrategy.FULLY_IN_MEMORY);
 	}
 
-	public PdfValidationResult validate(File pdfFile, PdfValidationSettings printValideringsinnstillinger) throws IOException {
+	public PdfValidationResult validate(File pdfFile, PdfValidationSettings printValidationSettings) throws IOException {
 		InputStream pdfStream = openFileAsInputStream(pdfFile);
-		return validateForPrint(pdfStream, printValideringsinnstillinger, PdfValidateStrategy.FULLY_IN_MEMORY);
+		return validateForPrint(pdfStream, printValidationSettings, PdfValidateStrategy.FULLY_IN_MEMORY);
 	}
 
 	/**
@@ -139,7 +139,7 @@ public class PdfValidator {
 			if (page != null) {
 
 				if (!documentHasInvalidDimensions) {
-					if (hasInvalidDimensions(page)) {
+					if (hasInvalidDimensions(page, settings.bleed)) {
 						documentHasInvalidDimensions = true;
 					}
 				}
@@ -147,7 +147,7 @@ public class PdfValidator {
 				if (settings.validateLeftMargin) {
 					if (!documentHasInvalidLeftMargin) {
 						try {
-							if (hasTextInBarcodeArea(page)) {
+							if (hasTextInBarcodeArea(page, settings.bleed)) {
 								documentHasInvalidLeftMargin = true;
 							}
 						} catch (NullPointerException npe) {
@@ -198,7 +198,7 @@ public class PdfValidator {
 
 		boolean documentHasInvalidDimensions = false;
 		for (PDPage page : getAllPagesFrom(pdDoc)) {
-			if (hasInvalidDimensions(page)) {
+			if (hasInvalidDimensions(page, settings.bleed)) {
 				documentHasInvalidDimensions = true;
 				break;
 			}
@@ -211,7 +211,7 @@ public class PdfValidator {
 		if (settings.validateLeftMargin) {
 			for (PDPage page : getAllPagesFrom(pdDoc)) {
 				try {
-					if (hasTextInBarcodeArea(page)) {
+					if (hasTextInBarcodeArea(page, settings.bleed)) {
 						hasTextInBarcodeArea = true;
 						break;
 					}
@@ -289,8 +289,8 @@ public class PdfValidator {
 		}
 	}
 
-	private boolean hasTextInBarcodeArea(final PDPage pdPage) throws IOException {
-		SilentZone silentZone = new SilentZone(pdPage.findCropBox());
+	private boolean hasTextInBarcodeArea(final PDPage pdPage, int bleed) throws IOException {
+		SilentZone silentZone = new SilentZone(pdPage.findCropBox(), bleed);
 		
 		Rectangle2D leftMarginBarcodeArea = new Rectangle2D.Double(silentZone.upperLeftCornerX,
 				silentZone.upperLeftCornerY, silentZone.silentZoneXSize, silentZone.silentZoneYSize);
@@ -298,11 +298,11 @@ public class PdfValidator {
 		return hasTextInArea(pdPage, leftMarginBarcodeArea);
 	}
 
-	private boolean hasInvalidDimensions(final PDPage page) {
+	private boolean hasInvalidDimensions(final PDPage page, int bleed) {
 		PDRectangle findCropBox = page.findCropBox();
 		long pageHeightInMillimeters = pointsTomm(findCropBox.getHeight());
 		long pageWidthInMillimeters = pointsTomm(findCropBox.getWidth());
-		if (!isPortraitA4(pageWidthInMillimeters, pageHeightInMillimeters) && !isLandscapeA4(pageWidthInMillimeters, pageHeightInMillimeters)) {
+		if (!isPortraitA4(pageWidthInMillimeters, pageHeightInMillimeters, bleed) && !isLandscapeA4(pageWidthInMillimeters, pageHeightInMillimeters, bleed)) {
 			LOG.info("One or more pages in the PDF has invalid dimensions.  Valid dimensions are width {} mm and height {} mm, alt " +
 					"width {} mm og height {} mm with {} mm lower flexibility. "
 					+ "Actual dimensions are width: {} mm and height: {} mm.",
@@ -314,13 +314,17 @@ public class PdfValidator {
 		}
 	}
 
-	private static boolean isPortraitA4(long pageWidthInMillimeters, long pageHeightInMillimeters){
-		return pageWidthInMillimeters <= A4_WIDTH_MM && pageWidthInMillimeters >= A4_WIDTH_MM - MM_VALIDATION_FLEXIBILITY
-				&& pageHeightInMillimeters <= A4_HEIGHT_MM && pageHeightInMillimeters >= A4_HEIGHT_MM - MM_VALIDATION_FLEXIBILITY;
+	private static boolean isPortraitA4(long pageWidthInMillimeters, long pageHeightInMillimeters, long bleed){
+		long minimumWidth = A4_WIDTH_MM - MM_VALIDATION_FLEXIBILITY;
+		long maximumWidth = A4_WIDTH_MM + bleed;
+		long minimumHeight = A4_HEIGHT_MM - MM_VALIDATION_FLEXIBILITY;
+		long maximumHeight = A4_HEIGHT_MM + bleed;
+		return pageWidthInMillimeters <= maximumWidth && pageWidthInMillimeters >= minimumWidth
+				&& pageHeightInMillimeters <= maximumHeight && pageHeightInMillimeters >= minimumHeight;
 	}
 
-	private static boolean isLandscapeA4(long pageWidthInMillimeters, long pageHeightInMillimeters){
-		return pageWidthInMillimeters == A4_HEIGHT_MM && pageHeightInMillimeters == A4_WIDTH_MM;
+	private static boolean isLandscapeA4(long pageWidthInMillimeters, long pageHeightInMillimeters, long bleed){
+		return isPortraitA4(pageHeightInMillimeters, pageWidthInMillimeters, bleed);
 	}
 
 	private boolean hasTextInArea(final PDPage pdPage, final Rectangle2D area) throws IOException {
@@ -355,10 +359,10 @@ public class PdfValidator {
 		public final double silentZoneXSize;
 		public final double silentZoneYSize;
 
-		private SilentZone(PDRectangle findCropBox) {
+		private SilentZone(PDRectangle findCropBox, int bleed) {
 			int pageHeightInMillimeters = (int)pointsTomm(findCropBox.getHeight());
 			int pageWidthInMillimeters = (int)pointsTomm(findCropBox.getWidth());
-			boolean isLandscape = isLandscapeA4(pageWidthInMillimeters, pageHeightInMillimeters);
+			boolean isLandscape = isLandscapeA4(pageWidthInMillimeters, pageHeightInMillimeters, bleed);
 
 			this.upperLeftCornerX = upperLeftCornerX(isLandscape);
 			this.upperLeftCornerY = upperLeftCornerY(isLandscape, pageHeightInMillimeters);

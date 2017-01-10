@@ -25,25 +25,25 @@ public class PdfValidationSettings {
 	public final boolean validatePDFversion;
     public static final int STANDARD_MAX_PAGES_FOR_AUTOMATED_PRINT = 14;
 	public static final int DEFAULT_BLEED_MM = 0;
-	public final int bleedForA4;
+	public final int bleed;
 
-    public PdfValidationSettings(boolean validateLeftMargin, boolean validateFonts, boolean validateNumberOfPages, boolean validatePDFversion, int bleedForA4) {
-        this(validateLeftMargin, validateFonts, validateNumberOfPages, STANDARD_MAX_PAGES_FOR_AUTOMATED_PRINT, validatePDFversion, bleedForA4);
+    public PdfValidationSettings(boolean validateLeftMargin, boolean validateFonts, boolean validateNumberOfPages, boolean validatePDFversion, int bleed) {
+        this(validateLeftMargin, validateFonts, validateNumberOfPages, STANDARD_MAX_PAGES_FOR_AUTOMATED_PRINT, validatePDFversion, bleed);
     }
 
 	public PdfValidationSettings(boolean validateLeftMargin, boolean validateFonts, boolean validateNumberOfPages, boolean validatePDFversion) {
 		this(validateLeftMargin, validateFonts, validateNumberOfPages, STANDARD_MAX_PAGES_FOR_AUTOMATED_PRINT, validatePDFversion, DEFAULT_BLEED_MM);
 	}
 
-	public PdfValidationSettings(boolean validateLeftMargin, boolean validateFonts, boolean validateNumberOfPages, int maxNumberOfPages, boolean validatePDFversion, int bleedForA4) {
+	public PdfValidationSettings(boolean validateLeftMargin, boolean validateFonts, boolean validateNumberOfPages, int maxNumberOfPages, boolean validatePDFversion, int bleed) {
 		this.validateLeftMargin = validateLeftMargin;
 		this.validateFonts = validateFonts;
 		this.validateNumberOfPages = validateNumberOfPages;
         this.maxNumberOfPages = maxNumberOfPages;
 		this.validatePDFversion = validatePDFversion;
-		this.bleedForA4 = bleedForA4;
+		this.bleed = bleed;
 	}
 
-	public static final PdfValidationSettings SJEKK_ALLE = new PdfValidationSettings(true, true, true, true);
+	public static final PdfValidationSettings CHECK_ALL = new PdfValidationSettings(true, true, true, true);
 
 }
