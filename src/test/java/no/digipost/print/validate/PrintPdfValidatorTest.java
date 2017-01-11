@@ -33,8 +33,8 @@ public class PrintPdfValidatorTest {
 
 	@Test
 	public void validatesPdfForPrint() {
-		assertThat(validationErrors("/pdf/a4-left-margin-20mm.pdf", CHECK_ALL), empty());
-		assertThat(validationErrors("/pdf/a4-landscape-left-margin-20mm.pdf", CHECK_ALL), empty());
+		assertThat(validationErrors("/pdf/a4-left-margin-15_1mm.pdf", CHECK_ALL), empty());
+		assertThat(validationErrors("/pdf/a4-landscape-left-margin-15_1mm.pdf", CHECK_ALL), empty());
 		assertThat(validationErrors("/pdf/a4-free-barcode-area.pdf", CHECK_ALL), empty());
 		assertThat(validationErrors("/pdf/nearly-a4-free-barcode-area.pdf", CHECK_ALL), empty());
 		assertThat(validationErrors("/pdf/a4-landscape-free-barcode-area.pdf", CHECK_ALL), empty());
@@ -68,8 +68,8 @@ public class PrintPdfValidatorTest {
 	@Test
 	public void doesNotFailPdfWithInsufficientMarginForPrintIfCheckDisabled() {
 		PdfValidationSettings innstillinger = new PdfValidationSettings(false, true, true, true);
-		assertThat(validationErrors("/pdf/a4-left-margin-19_5mm.pdf", innstillinger), empty());
-		assertThat(validationErrors("/pdf/a4-landscape-left-margin-19_5mm.pdf", innstillinger), empty());
+		assertThat(validationErrors("/pdf/a4-left-margin-14_5mm.pdf", innstillinger), empty());
+		assertThat(validationErrors("/pdf/a4-landscape-left-margin-14_5mm.pdf", innstillinger), empty());
 	}
 
 	@Test
