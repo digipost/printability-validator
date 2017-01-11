@@ -18,7 +18,7 @@ package no.digipost.print.validate;
 
 public enum PdfValidateStrategy {
 
-	FULLY_IN_MEMORY,
-	NON_SEQUENTIALLY;
+    FULLY_IN_MEMORY,
+    NON_SEQUENTIALLY;
 
 }

@@ -23,46 +23,46 @@ import java.util.Set;
 
 public enum PdfValidationError {
 
-	PDF_IS_ENCRYPTED("The PDF document is encrypted."),
-	TOO_MANY_PAGES_FOR_AUTOMATED_PRINT("The PDF document contains too many pages."),
-	UNSUPPORTED_PDF_VERSION_FOR_PRINT("The version of the PDF document is not supported. Supported versions are "
-			+ StringUtils.join(PdfValidator.PDF_VERSIONS_SUPPORTED_FOR_PRINT, ", ") + "."),
-	INSUFFICIENT_MARGIN_FOR_PRINT("The left margin of the PDF document is too narrow. Minimum left margin is " + PdfValidator.BARCODE_AREA_WIDTH_MM
-			+ " mm."),
-	UNABLE_TO_VERIFY_SUITABLE_MARGIN_FOR_PRINT("Could not verify the left margin of the PDF document. Minimum left margin is "
-			+ PdfValidator.BARCODE_AREA_WIDTH_MM + " mm."),
-	PDF_PARSE_ERROR("Could not parse the PDF document."),
-	PDF_PARSE_PAGE_ERROR("Could not parse at least one of the pages in the PDF document"),
-	UNSUPPORTED_DIMENSIONS("The dimensions of the PDF document are not supported. Supported dimensions are A4 (" + PdfValidator.A4_WIDTH_MM + " mm x "
-			+ PdfValidator.A4_HEIGHT_MM + " mm). For flexibility, we allow smaller sizes down to a limit of " + PdfValidator.ALLOWED_NEGATIVE_DEVIATION_FROM_PDF_STANDARD_DIMENSIONS_MM + " mm for both dimensions"),
-	REFERENCES_INVALID_FONT("The document refers to a non-standard font that is not included in the PDF."),
-	DOCUMENT_TOO_SMALL("The PDF document size is too small."),
-	INVALID_PDF("The PDF document is invalid."),
-	DOCUMENT_HAS_NO_PAGES("The PDF document does not contain any pages. The file may be corrupt.");
+    PDF_IS_ENCRYPTED("The PDF document is encrypted."),
+    TOO_MANY_PAGES_FOR_AUTOMATED_PRINT("The PDF document contains too many pages."),
+    UNSUPPORTED_PDF_VERSION_FOR_PRINT("The version of the PDF document is not supported. Supported versions are "
+            + StringUtils.join(PdfValidator.PDF_VERSIONS_SUPPORTED_FOR_PRINT, ", ") + "."),
+    INSUFFICIENT_MARGIN_FOR_PRINT("The left margin of the PDF document is too narrow. Minimum left margin is " + PdfValidator.BARCODE_AREA_WIDTH_MM
+            + " mm."),
+    UNABLE_TO_VERIFY_SUITABLE_MARGIN_FOR_PRINT("Could not verify the left margin of the PDF document. Minimum left margin is "
+            + PdfValidator.BARCODE_AREA_WIDTH_MM + " mm."),
+    PDF_PARSE_ERROR("Could not parse the PDF document."),
+    PDF_PARSE_PAGE_ERROR("Could not parse at least one of the pages in the PDF document"),
+    UNSUPPORTED_DIMENSIONS("The dimensions of the PDF document are not supported. Supported dimensions are A4 (" + PdfValidator.A4_WIDTH_MM + " mm x "
+            + PdfValidator.A4_HEIGHT_MM + " mm). For flexibility, we allow smaller sizes down to a limit of " + PdfValidator.ALLOWED_NEGATIVE_DEVIATION_FROM_PDF_STANDARD_DIMENSIONS_MM + " mm for both dimensions"),
+    REFERENCES_INVALID_FONT("The document refers to a non-standard font that is not included in the PDF."),
+    DOCUMENT_TOO_SMALL("The PDF document size is too small."),
+    INVALID_PDF("The PDF document is invalid."),
+    DOCUMENT_HAS_NO_PAGES("The PDF document does not contain any pages. The file may be corrupt.");
 
-	static final Set<PdfValidationError> OK_FOR_PRINT = Collections.emptySet();
-	static final Set<PdfValidationError> OK_FOR_WEB = EnumSet.of(
-			PDF_IS_ENCRYPTED, TOO_MANY_PAGES_FOR_AUTOMATED_PRINT, UNSUPPORTED_PDF_VERSION_FOR_PRINT, INSUFFICIENT_MARGIN_FOR_PRINT,
-			UNABLE_TO_VERIFY_SUITABLE_MARGIN_FOR_PRINT, UNSUPPORTED_DIMENSIONS, PDF_PARSE_PAGE_ERROR);
+    static final Set<PdfValidationError> OK_FOR_PRINT = Collections.emptySet();
+    static final Set<PdfValidationError> OK_FOR_WEB = EnumSet.of(
+            PDF_IS_ENCRYPTED, TOO_MANY_PAGES_FOR_AUTOMATED_PRINT, UNSUPPORTED_PDF_VERSION_FOR_PRINT, INSUFFICIENT_MARGIN_FOR_PRINT,
+            UNABLE_TO_VERIFY_SUITABLE_MARGIN_FOR_PRINT, UNSUPPORTED_DIMENSIONS, PDF_PARSE_PAGE_ERROR);
 
 
-	public final String message;
+    public final String message;
 
-	PdfValidationError(String message) {
-		this.message = message;
-	}
+    PdfValidationError(String message) {
+        this.message = message;
+    }
 
-	public boolean isOkForWeb() {
-		return OK_FOR_WEB.contains(this);
-	}
+    public boolean isOkForWeb() {
+        return OK_FOR_WEB.contains(this);
+    }
 
-	public boolean isOkForPrint() {
-		return OK_FOR_PRINT.contains(this);
-	}
+    public boolean isOkForPrint() {
+        return OK_FOR_PRINT.contains(this);
+    }
 
-	@Override
-	public String toString() {
-		return message;
-	}
+    @Override
+    public String toString() {
+        return message;
+    }
 
 }

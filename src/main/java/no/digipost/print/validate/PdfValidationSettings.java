@@ -18,32 +18,32 @@ package no.digipost.print.validate;
 
 public class PdfValidationSettings {
 
-	public final boolean validateLeftMargin;
-	public final boolean validateFonts;
-	public final boolean validateNumberOfPages;
+    public final boolean validateLeftMargin;
+    public final boolean validateFonts;
+    public final boolean validateNumberOfPages;
     public final int maxNumberOfPages;
-	public final boolean validatePDFversion;
+    public final boolean validatePDFversion;
     public static final int STANDARD_MAX_PAGES_FOR_AUTOMATED_PRINT = 14;
-	public static final int DEFAULT_BLEED_MM = 0;
-	public final int bleedInMM;
+    public static final int DEFAULT_BLEED_MM = 0;
+    public final int bleedInMM;
 
     public PdfValidationSettings(boolean validateLeftMargin, boolean validateFonts, boolean validateNumberOfPages, boolean validatePDFversion, int bleedInMM) {
         this(validateLeftMargin, validateFonts, validateNumberOfPages, STANDARD_MAX_PAGES_FOR_AUTOMATED_PRINT, validatePDFversion, bleedInMM);
     }
 
-	public PdfValidationSettings(boolean validateLeftMargin, boolean validateFonts, boolean validateNumberOfPages, boolean validatePDFversion) {
-		this(validateLeftMargin, validateFonts, validateNumberOfPages, STANDARD_MAX_PAGES_FOR_AUTOMATED_PRINT, validatePDFversion, DEFAULT_BLEED_MM);
-	}
+    public PdfValidationSettings(boolean validateLeftMargin, boolean validateFonts, boolean validateNumberOfPages, boolean validatePDFversion) {
+        this(validateLeftMargin, validateFonts, validateNumberOfPages, STANDARD_MAX_PAGES_FOR_AUTOMATED_PRINT, validatePDFversion, DEFAULT_BLEED_MM);
+    }
 
-	public PdfValidationSettings(boolean validateLeftMargin, boolean validateFonts, boolean validateNumberOfPages, int maxNumberOfPages, boolean validatePDFversion, int bleedInMM) {
-		this.validateLeftMargin = validateLeftMargin;
-		this.validateFonts = validateFonts;
-		this.validateNumberOfPages = validateNumberOfPages;
+    public PdfValidationSettings(boolean validateLeftMargin, boolean validateFonts, boolean validateNumberOfPages, int maxNumberOfPages, boolean validatePDFversion, int bleedInMM) {
+        this.validateLeftMargin = validateLeftMargin;
+        this.validateFonts = validateFonts;
+        this.validateNumberOfPages = validateNumberOfPages;
         this.maxNumberOfPages = maxNumberOfPages;
-		this.validatePDFversion = validatePDFversion;
-		this.bleedInMM = bleedInMM;
-	}
+        this.validatePDFversion = validatePDFversion;
+        this.bleedInMM = bleedInMM;
+    }
 
-	public static final PdfValidationSettings CHECK_ALL = new PdfValidationSettings(true, true, true, true);
+    public static final PdfValidationSettings CHECK_ALL = new PdfValidationSettings(true, true, true, true);
 
 }

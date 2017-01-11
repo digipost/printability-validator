@@ -29,39 +29,39 @@ import java.util.Set;
  */
 class EnhancedNonSequentialPDFParser extends NonSequentialPDFParser implements AutoCloseable {
 
-	static {
-		// Ensures that the parser does not read the entire PDF to memory.
-		System.setProperty(SYSPROP_PARSEMINIMAL, "true");
-	}
+    static {
+        // Ensures that the parser does not read the entire PDF to memory.
+        System.setProperty(SYSPROP_PARSEMINIMAL, "true");
+    }
 
-	EnhancedNonSequentialPDFParser(InputStream in) throws IOException {
-		super(in);
-		super.initialParse();
-	}
+    EnhancedNonSequentialPDFParser(InputStream in) throws IOException {
+        super(in);
+        super.initialParse();
+    }
 
-	public int getNumberOfPages() throws IOException {
-		return super.getPageNumber();
-	}
+    public int getNumberOfPages() throws IOException {
+        return super.getPageNumber();
+    }
 
-	public boolean isEncrypted() {
-		return super.getSecurityHandler() != null;
-	}
+    public boolean isEncrypted() {
+        return super.getSecurityHandler() != null;
+    }
 
-	@Override
-	public PDPage getPage(int pageNr) throws IOException {
-		// Releases memory regularly
-		if (pageNr % 5 == 0) {
-			Set<COSObjectKey> cosObjectKeys = super.xrefTrailerResolver.getXrefTable().keySet();
-			for (COSObjectKey cosObjectKey : cosObjectKeys) {
-				super.getDocument().removeObject(cosObjectKey);
-			}
-		}
-		return super.getPage(pageNr);
-	}
+    @Override
+    public PDPage getPage(int pageNr) throws IOException {
+        // Releases memory regularly
+        if (pageNr % 5 == 0) {
+            Set<COSObjectKey> cosObjectKeys = super.xrefTrailerResolver.getXrefTable().keySet();
+            for (COSObjectKey cosObjectKey : cosObjectKeys) {
+                super.getDocument().removeObject(cosObjectKey);
+            }
+        }
+        return super.getPage(pageNr);
+    }
 
-	@Override
-	public void close() {
-		this.clearResources();
-	}
+    @Override
+    public void close() {
+        this.clearResources();
+    }
 
 }
