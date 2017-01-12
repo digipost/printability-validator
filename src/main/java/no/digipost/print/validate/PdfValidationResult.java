@@ -22,42 +22,42 @@ import static java.util.Collections.unmodifiableList;
 
 public final class PdfValidationResult {
 
-	public static final PdfValidationResult EVERYTHING_OK = new PdfValidationResult(Collections.<PdfValidationError>emptyList(), -1);
+    public static final PdfValidationResult EVERYTHING_OK = new PdfValidationResult(Collections.<PdfValidationError>emptyList(), -1);
 
-	public final List<PdfValidationError> errors;
-	public final boolean okForPrint;
-	public final boolean okForWeb;
-	public final int pages;
-
-
-	PdfValidationResult(List<PdfValidationError> errors, int pages) {
-		this.pages = pages;
-		this.errors = errors != null ? unmodifiableList(errors) : Collections.<PdfValidationError>emptyList();
-		this.okForPrint = PdfValidationError.OK_FOR_PRINT.containsAll(this.errors);
-		this.okForWeb = PdfValidationError.OK_FOR_WEB.containsAll(this.errors);
-	}
-
-	public boolean hasErrors() {
-		return !errors.isEmpty();
-	}
+    public final List<PdfValidationError> errors;
+    public final boolean okForPrint;
+    public final boolean okForWeb;
+    public final int pages;
 
 
+    PdfValidationResult(List<PdfValidationError> errors, int pages) {
+        this.pages = pages;
+        this.errors = errors != null ? unmodifiableList(errors) : Collections.<PdfValidationError>emptyList();
+        this.okForPrint = PdfValidationError.OK_FOR_PRINT.containsAll(this.errors);
+        this.okForWeb = PdfValidationError.OK_FOR_WEB.containsAll(this.errors);
+    }
 
-	private String toStringValue;
+    public boolean hasErrors() {
+        return !errors.isEmpty();
+    }
 
-	@Override
-	public String toString() {
-		if (toStringValue == null) {
-			StringBuilder sb = new StringBuilder("[");
-			sb.append(getClass().getSimpleName());
-			for (PdfValidationError printPdfValideringsFeil : errors) {
-				PdfValidationError err = printPdfValideringsFeil;
-				sb.append(" ");
-				sb.append(err);
-			}
-			sb.append("]");
-			toStringValue = sb.toString();
-		}
-		return toStringValue;
-	}
+
+
+    private String toStringValue;
+
+    @Override
+    public String toString() {
+        if (toStringValue == null) {
+            StringBuilder sb = new StringBuilder("[");
+            sb.append(getClass().getSimpleName());
+            for (PdfValidationError printPdfValideringsFeil : errors) {
+                PdfValidationError err = printPdfValideringsFeil;
+                sb.append(" ");
+                sb.append(err);
+            }
+            sb.append("]");
+            toStringValue = sb.toString();
+        }
+        return toStringValue;
+    }
 }
