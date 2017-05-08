@@ -15,6 +15,7 @@
  */
 package no.digipost.print.validate;
 
+import no.digipost.print.validate.PdfValidationSettings.Bleed;
 import org.junit.Test;
 
 import java.io.File;
@@ -63,6 +64,16 @@ public class PrintPdfValidatorTest {
     public void failsPdfWithInsufficientMarginForPrint() {
         assertThat(validationErrors("/pdf/far-from-a4-free-barcode-area.pdf", CHECK_ALL), contains(UNSUPPORTED_DIMENSIONS, INSUFFICIENT_MARGIN_FOR_PRINT));
         assertThat(validationErrors("/pdf/a4-full-page.pdf", CHECK_ALL), contains(INSUFFICIENT_MARGIN_FOR_PRINT));
+    }
+
+    @Test
+    public void failedPdfWithInsufficientMarginForPrintGivesPersonalizedBleedParameters() {
+        Bleed bleed = new Bleed(2, 3);
+        PdfValidationResult pdfValidationResult = new PdfValidationResult(validationErrors("/pdf/far-from-a4-free-barcode-area.pdf", new PdfValidationSettings(false, false, false, false, bleed.positiveBleedInMM, bleed.negativeBleedInMM)), 1, bleed);
+
+        String errorString = pdfValidationResult.toString();
+
+        assertThat(errorString, is("[" + PdfValidationResult.class.getSimpleName() + " " + String.format(UNSUPPORTED_DIMENSIONS.message, bleed.negativeBleedInMM, bleed.positiveBleedInMM) + "]"));
     }
 
     @Test

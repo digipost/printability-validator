@@ -19,22 +19,26 @@ import java.util.Collections;
 import java.util.List;
 
 import static java.util.Collections.unmodifiableList;
+import static no.digipost.print.validate.PdfValidationSettings.*;
+import static no.digipost.print.validate.PdfValidationSettings.DEFAULT_POSITIVE_BLEED_MM;
 
 public final class PdfValidationResult {
 
-    public static final PdfValidationResult EVERYTHING_OK = new PdfValidationResult(Collections.<PdfValidationError>emptyList(), -1);
+    public static final PdfValidationResult EVERYTHING_OK = new PdfValidationResult(Collections.<PdfValidationError>emptyList(), -1, new Bleed(DEFAULT_POSITIVE_BLEED_MM, DEFAULT_NEGATIVE_BLEED_MM));
 
     public final List<PdfValidationError> errors;
+    public final Bleed bleed;
     public final boolean okForPrint;
     public final boolean okForWeb;
     public final int pages;
 
 
-    PdfValidationResult(List<PdfValidationError> errors, int pages) {
+    PdfValidationResult(List<PdfValidationError> errors, int pages, Bleed bleed) {
         this.pages = pages;
         this.errors = errors != null ? unmodifiableList(errors) : Collections.<PdfValidationError>emptyList();
         this.okForPrint = PdfValidationError.OK_FOR_PRINT.containsAll(this.errors);
         this.okForWeb = PdfValidationError.OK_FOR_WEB.containsAll(this.errors);
+        this.bleed = bleed;
     }
 
     public boolean hasErrors() {
@@ -51,7 +55,13 @@ public final class PdfValidationResult {
             StringBuilder sb = new StringBuilder("[");
             sb.append(getClass().getSimpleName());
             for (PdfValidationError printPdfValideringsFeil : errors) {
-                PdfValidationError err = printPdfValideringsFeil;
+                final String err;
+                if(printPdfValideringsFeil == PdfValidationError.UNSUPPORTED_DIMENSIONS) {
+                    err = String.format(PdfValidationError.UNSUPPORTED_DIMENSIONS.toString(), bleed.negativeBleedInMM, bleed.positiveBleedInMM);
+                } else {
+                    err = printPdfValideringsFeil.toString();
+                }
+
                 sb.append(" ");
                 sb.append(err);
             }

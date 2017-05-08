@@ -98,7 +98,7 @@ public class PdfValidator {
                 LOG.debug(e.getMessage(), e);
             }
 
-            return new PdfValidationResult(errors, numberOfPages);
+            return new PdfValidationResult(errors, numberOfPages, printValidationSettings.bleed);
         } finally {
             IOUtils.closeQuietly(pdfStream);
         }
