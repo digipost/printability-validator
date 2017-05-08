@@ -24,26 +24,44 @@ public class PdfValidationSettings {
     public final int maxNumberOfPages;
     public final boolean validatePDFversion;
     public static final int STANDARD_MAX_PAGES_FOR_AUTOMATED_PRINT = 14;
-    public static final int DEFAULT_BLEED_MM = 0;
-    public final int bleedInMM;
+    // The document is allowed to be x mm larger than a4 in width and height
+    public static final int DEFAULT_POSITIVE_BLEED_MM = 0;
+    // The document is allowed to be x mm smaller than a4 in width and height
+    public static final int DEFAULT_NEGATIVE_BLEED_MM = 10;
+    public final Bleed bleed;
 
-    public PdfValidationSettings(boolean validateLeftMargin, boolean validateFonts, boolean validateNumberOfPages, boolean validatePDFversion, int bleedInMM) {
-        this(validateLeftMargin, validateFonts, validateNumberOfPages, STANDARD_MAX_PAGES_FOR_AUTOMATED_PRINT, validatePDFversion, bleedInMM);
+    public PdfValidationSettings(boolean validateLeftMargin, boolean validateFonts, boolean validateNumberOfPages, boolean validatePDFversion,
+                                 int positiveBleedInMM, int negativeBleedInMM) {
+        this(validateLeftMargin, validateFonts, validateNumberOfPages, STANDARD_MAX_PAGES_FOR_AUTOMATED_PRINT, validatePDFversion,
+                positiveBleedInMM, negativeBleedInMM);
     }
 
     public PdfValidationSettings(boolean validateLeftMargin, boolean validateFonts, boolean validateNumberOfPages, boolean validatePDFversion) {
-        this(validateLeftMargin, validateFonts, validateNumberOfPages, STANDARD_MAX_PAGES_FOR_AUTOMATED_PRINT, validatePDFversion, DEFAULT_BLEED_MM);
+        this(validateLeftMargin, validateFonts, validateNumberOfPages, STANDARD_MAX_PAGES_FOR_AUTOMATED_PRINT, validatePDFversion,
+                DEFAULT_POSITIVE_BLEED_MM, DEFAULT_NEGATIVE_BLEED_MM);
     }
 
-    public PdfValidationSettings(boolean validateLeftMargin, boolean validateFonts, boolean validateNumberOfPages, int maxNumberOfPages, boolean validatePDFversion, int bleedInMM) {
+    public PdfValidationSettings(boolean validateLeftMargin, boolean validateFonts, boolean validateNumberOfPages, int maxNumberOfPages,
+                                 boolean validatePDFversion, int positiveBleedInMM, int negativeBleedInMM) {
         this.validateLeftMargin = validateLeftMargin;
         this.validateFonts = validateFonts;
         this.validateNumberOfPages = validateNumberOfPages;
         this.maxNumberOfPages = maxNumberOfPages;
         this.validatePDFversion = validatePDFversion;
-        this.bleedInMM = bleedInMM;
+        this.bleed = new Bleed(positiveBleedInMM, negativeBleedInMM);
     }
 
     public static final PdfValidationSettings CHECK_ALL = new PdfValidationSettings(true, true, true, true);
+
+    public static class Bleed {
+
+        public final int positiveBleedInMM;
+        public final int negativeBleedInMM;
+
+        public Bleed(int positiveBleedInMM, int negativeBleedInMM) {
+            this.positiveBleedInMM = positiveBleedInMM;
+            this.negativeBleedInMM = negativeBleedInMM;
+        }
+    }
 
 }

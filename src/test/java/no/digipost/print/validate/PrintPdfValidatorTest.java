@@ -119,8 +119,13 @@ public class PrintPdfValidatorTest {
     }
 
     @Test
-    public void doesNotFailPDFLargerThatA4WhenBleedSettingIsActivated() {
-        assertThat(validationErrors("/pdf/a4-pdf-with-10mm-bleed.pdf", new PdfValidationSettings(true, true, true, true, 10)), empty());
+    public void doesNotFailPDFLargerThatA4WhenPositiveBleedSettingIsActivated() {
+        assertThat(validationErrors("/pdf/a4-pdf-with-10mm-bleed.pdf", new PdfValidationSettings(true, true, true, true, 10, 10)), empty());
+    }
+
+    @Test
+    public void doesNotFailPDFSmallerThanA4WhenNegativeBleedSettingIsActivated() {
+        assertThat(validationErrors("/pdf/letter-left-margin-20mm.pdf", new PdfValidationSettings(true, true, true, true, 10, 20)), empty());
     }
 
     @Test
