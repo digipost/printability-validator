@@ -34,7 +34,7 @@ public enum PdfValidationError {
     PDF_PARSE_ERROR("Could not parse the PDF document."),
     PDF_PARSE_PAGE_ERROR("Could not parse at least one of the pages in the PDF document"),
     UNSUPPORTED_DIMENSIONS("The dimensions of the PDF document are not supported. Supported dimensions are width between %s - %s mm and height between "
-            + "%s - %s mm). If these limits should be changed, contact digipost support."),
+            + "%s - %s mm. If these limits should be changed, contact digipost support."),
     REFERENCES_INVALID_FONT("The document refers to a non-standard font that is not included in the PDF."),
     DOCUMENT_TOO_SMALL("The PDF document size is too small."),
     INVALID_PDF("The PDF document is invalid."),
