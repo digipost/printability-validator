@@ -14,7 +14,7 @@
     </parent>
 
     <artifactId>printability-validator</artifactId>
-    <version>2.1</version>
+    <version>2.2-SNAPSHOT</version>
     <name>Digipost Printability Validator</name>
     <description>Library for validating 'printability' of documents.</description>
 
@@ -299,7 +299,7 @@
         <connection>scm:git:git@github.com:digipost/printability-validator.git</connection>
         <developerConnection>scm:git:git@github.com:digipost/printability-validator.git</developerConnection>
         <url>https://github.com/digipost/printability-validator</url>
-        <tag>2.1</tag>
+        <tag>HEAD</tag>
     </scm>
 
 </project>
