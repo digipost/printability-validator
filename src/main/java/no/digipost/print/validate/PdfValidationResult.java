@@ -57,8 +57,8 @@ public final class PdfValidationResult {
             for (PdfValidationError printPdfValideringsFeil : errors) {
                 final String err;
                 if(printPdfValideringsFeil == PdfValidationError.UNSUPPORTED_DIMENSIONS) {
-                    err = String.format(PdfValidationError.UNSUPPORTED_DIMENSIONS.toString(), PdfValidator.A4_WIDTH_MM + bleed.positiveBleedInMM,
-                            PdfValidator.A4_WIDTH_MM - bleed.negativeBleedInMM, PdfValidator.A4_HEIGHT_MM + bleed.positiveBleedInMM, PdfValidator.A4_HEIGHT_MM - bleed.negativeBleedInMM);
+                    err = String.format(PdfValidationError.UNSUPPORTED_DIMENSIONS.toString(), PdfValidator.A4_WIDTH_MM - bleed.negativeBleedInMM,
+                            PdfValidator.A4_WIDTH_MM + bleed.positiveBleedInMM, PdfValidator.A4_HEIGHT_MM - bleed.negativeBleedInMM, PdfValidator.A4_HEIGHT_MM + bleed.positiveBleedInMM);
                 } else {
                     err = printPdfValideringsFeil.toString();
                 }

@@ -74,7 +74,7 @@ public class PrintPdfValidatorTest {
         String errorString = pdfValidationResult.toString();
 
         assertThat(errorString, is("[" + PdfValidationResult.class.getSimpleName() + " " + String.format(UNSUPPORTED_DIMENSIONS.message,
-                PdfValidator.A4_WIDTH_MM + bleed.positiveBleedInMM, PdfValidator.A4_WIDTH_MM - bleed.negativeBleedInMM, PdfValidator.A4_HEIGHT_MM + bleed.positiveBleedInMM, PdfValidator.A4_HEIGHT_MM - bleed.negativeBleedInMM) + "]"));
+                PdfValidator.A4_WIDTH_MM - bleed.negativeBleedInMM, PdfValidator.A4_WIDTH_MM + bleed.positiveBleedInMM, PdfValidator.A4_HEIGHT_MM - bleed.negativeBleedInMM, PdfValidator.A4_HEIGHT_MM + bleed.positiveBleedInMM) + "]"));
     }
 
     @Test
