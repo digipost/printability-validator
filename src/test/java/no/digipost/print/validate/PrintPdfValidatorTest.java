@@ -16,16 +16,28 @@
 package no.digipost.print.validate;
 
 import no.digipost.print.validate.PdfValidationSettings.Bleed;
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
-import static no.digipost.print.validate.PdfValidationError.*;
+import static java.util.Objects.requireNonNull;
+import static no.digipost.print.validate.PdfValidationError.DOCUMENT_HAS_NO_PAGES;
+import static no.digipost.print.validate.PdfValidationError.INSUFFICIENT_MARGIN_FOR_PRINT;
+import static no.digipost.print.validate.PdfValidationError.PDF_IS_ENCRYPTED;
+import static no.digipost.print.validate.PdfValidationError.PDF_PARSE_ERROR;
+import static no.digipost.print.validate.PdfValidationError.REFERENCES_INVALID_FONT;
+import static no.digipost.print.validate.PdfValidationError.TOO_MANY_PAGES_FOR_AUTOMATED_PRINT;
+import static no.digipost.print.validate.PdfValidationError.UNSUPPORTED_DIMENSIONS;
 import static no.digipost.print.validate.PdfValidationSettings.CHECK_ALL;
-import static org.apache.commons.lang3.Validate.notNull;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 public class PrintPdfValidatorTest {
@@ -96,8 +108,14 @@ public class PrintPdfValidatorTest {
     }
 
     @Test
-    public void failsCorruptPdfResultingInNoPages() {
-        assertThat(validationErrors("/pdf/corrupt_no_pages.pdf", CHECK_ALL), contains(DOCUMENT_HAS_NO_PAGES));
+    public void failsCorruptPdfResultingInNoPages() throws IOException {
+        PDDocument zeroPagesDocument = new PDDocument() {
+            @Override
+            public int getNumberOfPages() {
+                return 0;
+            }
+        };
+        assertThat(pdfValidator.validateDocumentForPrint(zeroPagesDocument, CHECK_ALL), contains(DOCUMENT_HAS_NO_PAGES));
     }
 
     @Test
@@ -146,7 +164,7 @@ public class PrintPdfValidatorTest {
     }
 
     public static List<PdfValidationError> validationErrors(String pdfResourceName, PdfValidationSettings printValidationSettings) {
-        File pdf = new File(notNull(PrintPdfValidatorTest.class.getResource(pdfResourceName), pdfResourceName).getFile().replace("%20", " "));
+        Path pdf = Paths.get(requireNonNull(PrintPdfValidatorTest.class.getResource(pdfResourceName), pdfResourceName).getFile().replace("%20", " "));
         try {
             return pdfValidator.validate(pdf, printValidationSettings).errors;
         } catch (IOException e) {

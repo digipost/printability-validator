@@ -15,17 +15,32 @@
  */
 package no.digipost.print.validate;
 
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDResources;
-import org.apache.pdfbox.pdmodel.font.*;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDFontDescriptor;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableList;
-import static org.apache.commons.lang3.StringUtils.*;
+import static java.util.Collections.unmodifiableSet;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Stream.concat;
+import static org.apache.commons.lang3.StringUtils.deleteWhitespace;
+import static org.apache.commons.lang3.StringUtils.remove;
+import static org.apache.commons.lang3.StringUtils.upperCase;
 
 class PdfFontValidator {
 
@@ -36,22 +51,20 @@ class PdfFontValidator {
     // Helvetica (v3) (in regular, oblique, bold and bold oblique)
     // Symbol
     // Zapf Dingbats
-    private static final Set<String> STANDARD_14_FONTS = new HashSet<>(asList("TIMES", "COURIER", "HELVETICA", "SYMBOL", "ZAPFDINGBATS"));
+    private static final Set<String> STANDARD_14_FONTS = unmodifiableSet(new HashSet<>(asList("TIMES", "COURIER", "HELVETICA", "SYMBOL", "ZAPFDINGBATS")));
 
-    private static final Set<String> WHITE_LISTED_FONTS = new HashSet<>(asList("ARIAL"));
+    private static final Set<String> WHITE_LISTED_FONTS = unmodifiableSet(new HashSet<>(asList("ARIAL")));
 
-    private static final Set<String> SUPPORTED_FONTS = new HashSet<>();
-
-    static {
-        SUPPORTED_FONTS.addAll(STANDARD_14_FONTS);
-        SUPPORTED_FONTS.addAll(WHITE_LISTED_FONTS);
-    }
+    private static final Set<String> SUPPORTED_FONTS = concat(STANDARD_14_FONTS.stream(), WHITE_LISTED_FONTS.stream()).collect(collectingAndThen(toSet(), Collections::unmodifiableSet));
 
     public Collection<PDFont> getPageFonts(PDPage page) throws IOException {
         PDResources resources = page.getResources();
         if (resources != null) {
-            Map<String, PDFont> fontMap = resources.getFonts();
-            return fontMap.values();
+            Set<PDFont> fonts = new LinkedHashSet<>();
+            for (COSName fontName : resources.getFontNames()) {
+                fonts.add(resources.getFont(fontName));
+            }
+            return fonts;
         }
         return emptySet();
     }
@@ -59,15 +72,19 @@ class PdfFontValidator {
     public List<PDFont> findNonSupportedFonts(Iterable<PDFont> fonter) {
         List<PDFont> nonSupported = new ArrayList<>();
         for (PDFont font : fonter) {
-            PDFontDescriptor fontDescriptor = font.getFontDescriptor();
-            if (fontDescriptor != null) {
-                if (!erFontDescriptorAkseptabelForPrint(fontDescriptor)) {
-                    nonSupported.add(font);
-                }
+            if (font.isDamaged()) {
+                nonSupported.add(font);
             } else {
-                if (!(font instanceof PDType0Font)) {
-                    if (!erAkseptabelForPrint(font.getBaseFont())) {
+                PDFontDescriptor fontDescriptor = font.getFontDescriptor();
+                if (fontDescriptor != null) {
+                    if (!erFontDescriptorAkseptabelForPrint(fontDescriptor)) {
                         nonSupported.add(font);
+                    }
+                } else {
+                    if (!(font instanceof PDType0Font)) {
+                        if (!erAkseptabelForPrint(font.getName())) {
+                            nonSupported.add(font);
+                        }
                     }
                 }
             }
@@ -76,18 +93,10 @@ class PdfFontValidator {
     }
 
     private boolean erFontDescriptorAkseptabelForPrint(PDFontDescriptor fontDescriptor) {
-        if (fontDescriptor instanceof PDFontDescriptorDictionary) {
-            PDFontDescriptorDictionary pdFontDescriptorDictionary = (PDFontDescriptorDictionary) fontDescriptor;
-            if (harIkkeEmbeddedFont(pdFontDescriptorDictionary)) {
-                return erAkseptabelForPrint(pdFontDescriptorDictionary.getFontName());
-            } else {
-                return true;
-            }
-        } else if (fontDescriptor instanceof PDFontDescriptorAFM) {
-            PDFontDescriptorAFM fontDescriptorAFM = (PDFontDescriptorAFM) fontDescriptor;
-            return erAkseptabelForPrint(fontDescriptorAFM.getFontName());
+        if (harIkkeEmbeddedFont(fontDescriptor)) {
+            return erAkseptabelForPrint(fontDescriptor.getFontName());
         } else {
-            throw new IllegalArgumentException("Ukjent font descriptor brukt : " + fontDescriptor.getClass());
+            return true;
         }
     }
 
@@ -104,7 +113,7 @@ class PdfFontValidator {
         return false;
     }
 
-    private boolean harIkkeEmbeddedFont(PDFontDescriptorDictionary fontDescriptor) {
+    private boolean harIkkeEmbeddedFont(PDFontDescriptor fontDescriptor) {
         return fontDescriptor.getFontFile() == null &&
                 fontDescriptor.getFontFile2() == null &&
                 fontDescriptor.getFontFile3() == null;
