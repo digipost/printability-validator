@@ -50,6 +50,11 @@ public class PdfValidator {
 
     private static final Logger LOG = LoggerFactory.getLogger(PdfValidator.class);
 
+    static {
+        PDFBoxConfigurer.configure();
+    }
+
+
     private final PdfFontValidator fontValidator = new PdfFontValidator();
 
     // MM_TO_UNITS copied from org.apache.pdfbox.pdmodel.PDPage
