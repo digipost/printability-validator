@@ -8,17 +8,10 @@ Licensed under Apache 2 - http://www.apache.org/licenses/LICENSE-2.0.html
 
 This software includes third party software subject to the following licenses:
 
-  Apache Commons Lang under The Apache Software License, Version 2.0
   Apache FontBox under Apache License, Version 2.0
-  Apache JempBox under Apache License, Version 2.0
   Apache PDFBox under Apache License, Version 2.0
   Digipost Printability Validator under The Apache Software License, Version 2.0
-  Hamcrest Core under New BSD License
-  Hamcrest library under New BSD License
-  JCL 1.1.1 implemented over SLF4J under MIT License
-  JUnit under Eclipse Public License 1.0
-  Logback Classic Module under Eclipse Public License - v 1.0 or GNU Lesser General Public License
-  Logback Core Module under Eclipse Public License - v 1.0 or GNU Lesser General Public License
+  JCL 1.2 implemented over SLF4J under MIT License
   SLF4J API Module under MIT License
 
 

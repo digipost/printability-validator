@@ -15,18 +15,18 @@
  */
 package no.digipost.print.validate;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
+
+import static java.util.stream.Collectors.joining;
 
 public enum PdfValidationError {
 
     PDF_IS_ENCRYPTED("The PDF document is encrypted."),
     TOO_MANY_PAGES_FOR_AUTOMATED_PRINT("The PDF document contains too many pages."),
     UNSUPPORTED_PDF_VERSION_FOR_PRINT("The version of the PDF document is not supported. Supported versions are "
-            + StringUtils.join(PdfValidator.PDF_VERSIONS_SUPPORTED_FOR_PRINT, ", ") + "."),
+            + PdfValidator.PDF_VERSIONS_SUPPORTED_FOR_PRINT.stream().map(String::valueOf).collect(joining(", ")) + "."),
     INSUFFICIENT_MARGIN_FOR_PRINT("The left margin of the PDF document is too narrow. Minimum left margin is " + PdfValidator.BARCODE_AREA_WIDTH_MM
             + " mm."),
     UNABLE_TO_VERIFY_SUITABLE_MARGIN_FOR_PRINT("Could not verify the left margin of the PDF document. Minimum left margin is "

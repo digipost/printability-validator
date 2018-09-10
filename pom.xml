@@ -2,61 +2,51 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <prerequisites>
-        <maven>2.2.1</maven>
-    </prerequisites>
-
     <parent>
         <groupId>no.digipost</groupId>
         <artifactId>digipost-open-super-pom</artifactId>
-        <version>0.3</version>
+        <version>1</version>
         <relativePath />
     </parent>
 
     <artifactId>printability-validator</artifactId>
-    <version>2.3-SNAPSHOT</version>
+    <version>3.1-SNAPSHOT</version>
     <name>Digipost Printability Validator</name>
     <description>Library for validating 'printability' of documents.</description>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.10</version>
+            <version>1.7.25</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
-            <version>1.7.10</version>
+            <version>1.7.25</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.1.2</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.25</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
-            <version>1.8.12</version>
+            <version>2.0.11</version>
             <exclusions>
                 <exclusion>
                     <groupId>commons-logging</groupId>
                     <artifactId>commons-logging</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.3.2</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -77,7 +67,7 @@
             <plugins>
                 <plugin>
                     <artifactId>maven-release-plugin</artifactId>
-                    <version>2.5.1</version>
+                    <version>2.5.3</version>
                     <configuration>
                         <tagNameFormat>@{project.version}</tagNameFormat>
                     </configuration>
@@ -85,21 +75,19 @@
                 <plugin>
                     <groupId>org.jasig.maven</groupId>
                     <artifactId>maven-notice-plugin</artifactId>
-                    <version>1.0.6.1</version>
+                    <version>1.1.0</version>
                     <configuration>
+                        <excludeScopes>test</excludeScopes>
                         <noticeTemplate>${project.basedir}/src/main/notice/NOTICE.template</noticeTemplate>
-                        <licenseMapping>
-                            <param>${project.basedir}/src/main/notice/license-mappings.xml</param>
-                        </licenseMapping>
                     </configuration>
                 </plugin>
                 <plugin>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.2</version>
+                    <version>3.8.0</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.18.1</version>
+                    <version>2.22.0</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-deploy-plugin</artifactId>
@@ -107,11 +95,11 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-clean-plugin</artifactId>
-                    <version>2.6.1</version>
+                    <version>3.1.0</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>2.10</version>
+                    <version>3.1.1</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-install-plugin</artifactId>
@@ -119,15 +107,33 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-resources-plugin</artifactId>
-                    <version>2.7</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-site-plugin</artifactId>
-                    <version>3.4</version>
+                    <version>3.1.0</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>2.5</version>
+                    <version>3.1.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>versions-maven-plugin</artifactId>
+                    <version>2.7</version>
+                </plugin>
+                <plugin>
+                    <groupId>com.github.siom79.japicmp</groupId>
+                    <artifactId>japicmp-maven-plugin</artifactId>
+                    <version>0.13.0</version>
+                    <configuration>
+                        <newVersion>
+                            <file><path>${project.build.directory}/${project.build.finalName}.${project.packaging}</path></file>
+                        </newVersion>
+                        <parameter>
+                            <onlyModified>true</onlyModified>
+                            <onlyBinaryIncompatible>true</onlyBinaryIncompatible>
+                            <includes>
+                                <include>no.digipost</include>
+                            </includes>
+                        </parameter>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -135,7 +141,7 @@
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>2.8</version>
+                <version>3.0</version>
                 <configuration>
                     <header>src/main/license-header.txt</header>
                     <strictCheck>true</strictCheck>
@@ -159,7 +165,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.1</version>
+                <version>3.0.1</version>
                 <executions>
                     <execution>
                         <id>attach-javadoc</id>
@@ -168,10 +174,14 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <doclint>all,-missing</doclint>
+                    <quiet>true</quiet>
+                </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.4</version>
+                <version>3.0.1</version>
                 <configuration>
                     <includePom>true</includePom>
                 </configuration>
@@ -212,29 +222,8 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>animal-sniffer-maven-plugin</artifactId>
-                <version>1.13</version>
-                <executions>
-                    <execution>
-                        <id>ensure-java7-compatible</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                        <configuration>
-                            <signature>
-                                <groupId>org.codehaus.mojo.signature</groupId>
-                                <artifactId>java17</artifactId>
-                                <version>1.0</version>
-                            </signature>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>1.3.1</version>
+                <version>3.0.0-M2</version>
                 <executions>
                     <execution>
                         <id>test</id>
@@ -244,23 +233,19 @@
                         <phase>test</phase>
                         <configuration>
                             <rules>
+                                <requireMavenVersion>
+                                    <version>3.0.5</version>
+                                </requireMavenVersion>
                                 <bannedDependencies>
                                     <excludes>
                                         <exclude>*:*</exclude>
                                     </excludes>
                                     <includes>
-                                        <include>org.apache.pdfbox:jempbox</include>
-                                        <include>org.apache.pdfbox:pdfbox</include>
-                                        <include>org.apache.pdfbox:fontbox</include>
-                                        <include>org.slf4j:slf4j-api</include>
-                                        <include>org.slf4j:jul-to-slf4j</include>
-                                        <include>org.slf4j:jcl-over-slf4j</include>
+                                        <include>org.apache.pdfbox</include>
+                                        <include>org.slf4j</include>
                                         <include>org.apache.commons:commons-lang3</include>
-                                        <include>ch.qos.logback:logback-core</include>
-                                        <include>ch.qos.logback:logback-classic</include>
-                                        <include>org.hamcrest:hamcrest-core</include>
-                                        <include>org.hamcrest:hamcrest-library</include>
-                                        <include>junit:junit</include>
+                                        <include>org.hamcrest</include>
+                                        <include>junit</include>
                                     </includes>
                                     <searchTransitive>true</searchTransitive>
                                     <message>
@@ -274,26 +259,6 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>doclint-java8-disable</id>
-            <activation>
-                <jdk>[1.8,</jdk>
-            </activation>
-
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <configuration>
-                            <additionalparam>-Xdoclint:none</additionalparam>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
     <scm>
         <connection>scm:git:git@github.com:digipost/printability-validator.git</connection>

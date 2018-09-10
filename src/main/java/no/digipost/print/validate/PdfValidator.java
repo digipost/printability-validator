@@ -16,35 +16,43 @@
 package no.digipost.print.validate;
 
 import no.digipost.print.validate.PdfValidationSettings.Bleed;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.util.PDFTextStripperByArea;
+import org.apache.pdfbox.text.PDFTextStripperByArea;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.geom.Rectangle2D;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static java.util.Arrays.asList;
-import static no.digipost.print.validate.PdfValidateStrategy.FULLY_IN_MEMORY;
-import static no.digipost.print.validate.PdfValidateStrategy.NON_SEQUENTIALLY;
-import static no.digipost.print.validate.PdfValidationError.*;
-import static org.apache.commons.lang3.StringUtils.join;
+import static java.util.stream.Collectors.joining;
+import static no.digipost.print.validate.PdfValidationError.INSUFFICIENT_MARGIN_FOR_PRINT;
+import static no.digipost.print.validate.PdfValidationError.UNABLE_TO_VERIFY_SUITABLE_MARGIN_FOR_PRINT;
+import static no.digipost.print.validate.PdfValidationError.UNSUPPORTED_DIMENSIONS;
 
 
 public class PdfValidator {
 
     private static final Logger LOG = LoggerFactory.getLogger(PdfValidator.class);
+
+    static {
+        PDFBoxConfigurer.configure();
+    }
+
 
     private final PdfFontValidator fontValidator = new PdfFontValidator();
 
@@ -61,126 +69,39 @@ public class PdfValidator {
 
 
     public PdfValidationResult validate(byte[] pdfContent, PdfValidationSettings printValidationSettings) {
-        return validateForPrint(new ByteArrayInputStream(pdfContent), printValidationSettings, PdfValidateStrategy.FULLY_IN_MEMORY);
+        return validateForPrint(new ByteArrayInputStream(pdfContent), printValidationSettings);
     }
 
-    public PdfValidationResult validate(File pdfFile, PdfValidationSettings printValidationSettings) throws IOException {
-        InputStream pdfStream = openFileAsInputStream(pdfFile);
-        return validateForPrint(pdfStream, printValidationSettings, PdfValidateStrategy.FULLY_IN_MEMORY);
+    public PdfValidationResult validate(Path pdfFile, PdfValidationSettings printValidationSettings) throws IOException {
+        try (InputStream pdfStream = openFileAsInputStream(pdfFile)) {
+            return validateForPrint(pdfStream, printValidationSettings);
+        }
     }
 
     /**
-     * @param pdfStream the input stream for reading the PDF. It will be closed before returning from
-     *                  this method
-     * @param readStrategy decides if PDF is completely read into memory or not
+     * @param pdfStream the input stream for reading the PDF. This method will <strong>not</strong> close the stream.
+     * @param printValidationSettings settings for how to perform the validation
      */
-    private PdfValidationResult validateForPrint(InputStream pdfStream, PdfValidationSettings printValidationSettings, PdfValidateStrategy readStrategy) {
+    private PdfValidationResult validateForPrint(InputStream pdfStream, PdfValidationSettings printValidationSettings) {
         int numberOfPages = -1;
-        try {
-            List<PdfValidationError> errors;
-            try {
-                if (readStrategy == NON_SEQUENTIALLY) {
-                    try (EnhancedNonSequentialPDFParser dpostNonSequentialPDFParser = new EnhancedNonSequentialPDFParser(pdfStream)){
-                        numberOfPages = dpostNonSequentialPDFParser.getNumberOfPages();
-                        errors = validateStreamForPrint(dpostNonSequentialPDFParser, printValidationSettings);
-                    }
-                } else if (readStrategy == FULLY_IN_MEMORY) {
-                    try (PDDocument pdDoc = PDDocument.load(pdfStream)) {
-                        numberOfPages = pdDoc.getNumberOfPages();
-                        errors = validateDocumentForPrint(pdDoc, printValidationSettings);
-                    }
-                } else {
-                    throw new IllegalArgumentException("Unknown " + PdfValidateStrategy.class.getSimpleName() + ": " + readStrategy);
-                }
-            } catch (Exception e) {
-                errors = asList(PdfValidationError.PDF_PARSE_ERROR);
-                LOG.info("PDF could not be parsed. (" + e.getMessage() + ")");
-                LOG.debug(e.getMessage(), e);
-            }
-
-            return new PdfValidationResult(errors, numberOfPages, printValidationSettings.bleed);
-        } finally {
-            IOUtils.closeQuietly(pdfStream);
-        }
-    }
-
-    /**
-     * Leser ikke hele dokumentet inn i minnet
-     */
-    private List<PdfValidationError> validateStreamForPrint(EnhancedNonSequentialPDFParser dpostNonSequentialPDFParser,
-                                                            PdfValidationSettings settings) throws IOException {
-
-        List<PdfValidationError> errors = new ArrayList<>();
-
-        if (dpostNonSequentialPDFParser.isEncrypted()) {
-            return failValidationIfEncrypted(errors);
+        List<PdfValidationError> errors;
+        try (PDDocument pdDoc = PDDocument.load(pdfStream)) {
+            numberOfPages = pdDoc.getNumberOfPages();
+            errors = validateDocumentForPrint(pdDoc, printValidationSettings);
+        } catch (InvalidPasswordException invalidPassword) {
+            errors = failValidationIfEncrypted(new ArrayList<>());
+        } catch (Exception e) {
+            errors = asList(PdfValidationError.PDF_PARSE_ERROR);
+            LOG.debug("PDF could not be parsed. ({}: '{}')", e.getClass().getSimpleName(), e.getMessage(), e);
         }
 
-        if (settings.validateNumberOfPages) {
-            validerSideantall(dpostNonSequentialPDFParser.getNumberOfPages(), settings.maxNumberOfPages, errors);
-        }
-
-        if (settings.validatePDFversion) {
-            validatePdfVersion(dpostNonSequentialPDFParser.getDocument().getVersion(), errors);
-        }
-
-        boolean documentHasInvalidDimensions = false;
-        boolean documentContainsPagesWithInvalidPrintMargins = false;
-        boolean documentHasInvalidLeftMargin = false;
-        boolean documentHasPagesWhichCannotBeParsed = false;
-        for (int i = 1; i <= dpostNonSequentialPDFParser.getNumberOfPages(); i++) {
-            PDPage page = null;
-            try {
-                page = dpostNonSequentialPDFParser.getPage(i);
-            } catch (Exception e) {
-                documentHasPagesWhichCannotBeParsed = true;
-            }
-            if (page != null) {
-
-                if (!documentHasInvalidDimensions) {
-                    if (hasInvalidDimensions(page, settings.bleed)) {
-                        documentHasInvalidDimensions = true;
-                    }
-                }
-
-                if (settings.validateLeftMargin) {
-                    if (!documentHasInvalidLeftMargin) {
-                        try {
-                            if (hasTextInBarcodeArea(page, settings.bleed)) {
-                                documentHasInvalidLeftMargin = true;
-                            }
-                        } catch (NullPointerException npe) {
-                            LOG.info("Could not verify margin on the following side " + i);
-                            documentContainsPagesWithInvalidPrintMargins = true;
-                        }
-                    }
-
-                }
-
-                if (settings.validateFonts) {
-                    validateFonts(fontValidator.getPageFonts(page), errors);
-                }
-
-            } else {
-                // TODO en eller annen algoritme som kaster feil om et visst antall
-                // sider ikke kan parses
-                LOG.warn("Could not fetch page {} in the pdf", i);
-            }
-        }
-
-        addValidationError(documentHasInvalidDimensions, UNSUPPORTED_DIMENSIONS, errors);
-        addValidationError(documentHasInvalidLeftMargin, INSUFFICIENT_MARGIN_FOR_PRINT, errors);
-        addValidationError(documentHasPagesWhichCannotBeParsed, PDF_PARSE_PAGE_ERROR, errors);
-        addValidationError(documentContainsPagesWithInvalidPrintMargins, UNABLE_TO_VERIFY_SUITABLE_MARGIN_FOR_PRINT, errors);
-
-        return errors;
-
+        return new PdfValidationResult(errors, numberOfPages, printValidationSettings.bleed);
     }
 
     /**
      * Leser hele dokumentet inn i minnet
      */
-    private List<PdfValidationError> validateDocumentForPrint(final PDDocument pdDoc, final PdfValidationSettings settings)	throws IOException {
+    List<PdfValidationError> validateDocumentForPrint(PDDocument pdDoc, PdfValidationSettings settings)	throws IOException {
         List<PdfValidationError> errors = new ArrayList<>();
 
         if (pdDoc.isEncrypted()) {
@@ -196,7 +117,7 @@ public class PdfValidator {
         }
 
         boolean documentHasInvalidDimensions = false;
-        for (PDPage page : getAllPagesFrom(pdDoc)) {
+        for (PDPage page : pdDoc.getPages()) {
             if (hasInvalidDimensions(page, settings.bleed)) {
                 documentHasInvalidDimensions = true;
                 break;
@@ -208,15 +129,15 @@ public class PdfValidator {
         boolean hasTextInBarcodeArea = false;
         boolean documentContainsPagesWithInvalidPrintMargins = false;
         if (settings.validateLeftMargin) {
-            for (PDPage page : getAllPagesFrom(pdDoc)) {
+            for (PDPage page : pdDoc.getPages()) {
                 try {
                     if (hasTextInBarcodeArea(page, settings.bleed)) {
                         hasTextInBarcodeArea = true;
                         break;
                     }
-                } catch (NullPointerException npe) {
+                } catch (Exception npe) {
                     documentContainsPagesWithInvalidPrintMargins = true;
-                    LOG.info("Could not validate the margin on one of the sides");
+                    LOG.debug("Unable to validate the margin on one of the pages.", npe);
                 }
             }
         }
@@ -225,7 +146,7 @@ public class PdfValidator {
         addValidationError(hasTextInBarcodeArea, INSUFFICIENT_MARGIN_FOR_PRINT, errors);
 
         if (settings.validateFonts) {
-            for (PDPage page : getAllPagesFrom(pdDoc)) {
+            for (PDPage page : pdDoc.getPages()) {
                 validateFonts(fontValidator.getPageFonts(page), errors);
             }
         }
@@ -240,56 +161,46 @@ public class PdfValidator {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private List<PDPage> getAllPagesFrom(final PDDocument pdDoc) {
-        return pdDoc.getDocumentCatalog().getAllPages();
-    }
-
     private List<PdfValidationError> failValidationIfEncrypted(List<PdfValidationError> errors) {
         errors.add(PdfValidationError.PDF_IS_ENCRYPTED);
-        LOG.info("The pdf is encrypted.");
+        LOG.debug("The pdf is encrypted.");
         return errors;
     }
 
-    private void validateFonts(final Iterable<PDFont> fonter, final List<PdfValidationError> errors) {
+    private void validateFonts(Iterable<PDFont> fonter, List<PdfValidationError> errors) {
         List<PDFont> nonSupportedFonts = fontValidator.findNonSupportedFonts(fonter);
         if (!nonSupportedFonts.isEmpty()) {
             errors.add(PdfValidationError.REFERENCES_INVALID_FONT);
             if (LOG.isInfoEnabled()) {
-                LOG.info("The PDF has references to invalid fonts: [{}]", join(describe(nonSupportedFonts), ", "));
+                LOG.debug("The PDF has references to invalid fonts: [{}]", nonSupportedFonts.stream().map(this::describe).collect(joining(", ")));
             }
         }
     }
 
-    private List<String> describe(Iterable<PDFont> fonts) {
-        List<String> fontDescriptions = new ArrayList<>();
-        for (PDFont font : fonts) {
-            fontDescriptions.add(font.getSubType() + " '" + font.getBaseFont() + "'");
-        }
-        return fontDescriptions;
+    private String describe(PDFont font) {
+        return font.getSubType() + " '" + font.getName() + "'";
     }
 
-    private void validatePdfVersion(final float pdfVersion, final List<PdfValidationError> errors) {
+    private void validatePdfVersion(float pdfVersion, List<PdfValidationError> errors) {
         if (!PDF_VERSIONS_SUPPORTED_FOR_PRINT.contains(pdfVersion)) {
             errors.add(PdfValidationError.UNSUPPORTED_PDF_VERSION_FOR_PRINT);
-            LOG.info("The PDF is not in valid version. Valid versions are {}. Actual version is {}",
-                    StringUtils.join(PDF_VERSIONS_SUPPORTED_FOR_PRINT, ", "), pdfVersion);
+            LOG.info("PDF version was {}. {}", pdfVersion, PdfValidationError.UNSUPPORTED_PDF_VERSION_FOR_PRINT);
         }
     }
 
-    private void validerSideantall(final int numberOfPages, int maxPages, final List<PdfValidationError> errors) {
+    private void validerSideantall(int numberOfPages, int maxPages, final List<PdfValidationError> errors) {
         if (numberOfPages > maxPages) {
             errors.add(PdfValidationError.TOO_MANY_PAGES_FOR_AUTOMATED_PRINT);
-            LOG.info("The PDF has too many pages. Max number of pages is {}. Actual number of pages is {}", maxPages, numberOfPages);
+            LOG.debug("The PDF has too many pages. Max number of pages is {}. Actual number of pages is {}", maxPages, numberOfPages);
         }
         if (numberOfPages == 0) {
             errors.add(PdfValidationError.DOCUMENT_HAS_NO_PAGES);
-            LOG.info("The PDF document does not contain any pages. The file may be corrupt.", numberOfPages);
+            LOG.debug("The PDF document does not contain any pages. The file may be corrupt.", numberOfPages);
         }
     }
 
-    private boolean hasTextInBarcodeArea(final PDPage pdPage, Bleed bleed) throws IOException {
-        SilentZone silentZone = new SilentZone(pdPage.findCropBox(), bleed);
+    private boolean hasTextInBarcodeArea(PDPage pdPage, Bleed bleed) throws IOException {
+        SilentZone silentZone = new SilentZone(pdPage.getCropBox(), bleed);
 
         Rectangle2D leftMarginBarcodeArea = new Rectangle2D.Double(silentZone.upperLeftCornerX,
                 silentZone.upperLeftCornerY, silentZone.silentZoneXSize, silentZone.silentZoneYSize);
@@ -297,12 +208,12 @@ public class PdfValidator {
         return hasTextInArea(pdPage, leftMarginBarcodeArea);
     }
 
-    private boolean hasInvalidDimensions(final PDPage page, Bleed bleed) {
-        PDRectangle findCropBox = page.findCropBox();
+    private boolean hasInvalidDimensions(PDPage page, Bleed bleed) {
+        PDRectangle findCropBox = page.getCropBox();
         long pageHeightInMillimeters = pointsTomm(findCropBox.getHeight());
         long pageWidthInMillimeters = pointsTomm(findCropBox.getWidth());
         if (!isPortraitA4(pageWidthInMillimeters, pageHeightInMillimeters, bleed) && !isLandscapeA4(pageWidthInMillimeters, pageHeightInMillimeters, bleed)) {
-            LOG.info("One or more pages in the PDF has invalid dimensions.  Valid dimensions are width {} mm and height {} mm, alt " +
+            LOG.debug("One or more pages in the PDF has invalid dimensions.  Valid dimensions are width {} mm and height {} mm, alt " +
                     "width {} mm og height {} mm with {} mm lower flexibility and {} upper flexibility. "
                     + "Actual dimensions are width: {} mm and height: {} mm.",
                     new Object[] { A4_WIDTH_MM, A4_HEIGHT_MM, A4_HEIGHT_MM, A4_WIDTH_MM, bleed.negativeBleedInMM,
@@ -326,7 +237,7 @@ public class PdfValidator {
         return isPortraitA4(pageHeightInMillimeters, pageWidthInMillimeters, bleed);
     }
 
-    private boolean hasTextInArea(final PDPage pdPage, final Rectangle2D area) throws IOException {
+    private boolean hasTextInArea(PDPage pdPage, Rectangle2D area) throws IOException {
         boolean hasTextInArea = false;
         final PDFTextStripperByArea stripper = new PDFTextStripperByArea();
         stripper.addRegion("marginArea", area);
@@ -338,17 +249,17 @@ public class PdfValidator {
         return hasTextInArea;
     }
 
-    private InputStream openFileAsInputStream(final File pdfFile) throws IOException {
-        return new BufferedInputStream(Files.newInputStream(pdfFile.toPath()));
+    private InputStream openFileAsInputStream(Path pdfFile) throws IOException {
+        return new BufferedInputStream(Files.newInputStream(pdfFile));
     }
 
-    private static double mmToPoints(final int sizeInMillimeters) {
+    private static double mmToPoints(int sizeInMillimeters) {
         BigDecimal points = new BigDecimal(sizeInMillimeters * MM_TO_POINTS);
         points = points.setScale(1, RoundingMode.DOWN);
         return points.doubleValue();
     }
 
-    private static long pointsTomm(final double sizeInPoints) {
+    private static long pointsTomm(double sizeInPoints) {
         return Math.round(sizeInPoints / MM_TO_POINTS);
     }
 
