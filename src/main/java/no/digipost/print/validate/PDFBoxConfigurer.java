@@ -35,6 +35,8 @@ public final class PDFBoxConfigurer {
     private static final Logger LOG = LoggerFactory.getLogger(PDFBoxConfigurer.class);
 
     static final class PDFBoxConfiguration {
+        volatile boolean enabled = true;
+
         volatile boolean useKcmsServiceProvider = true;
 
         volatile boolean usePureJavaCMYKConversion = true;
@@ -49,6 +51,13 @@ public final class PDFBoxConfigurer {
 
     private static final AtomicBoolean configured = new AtomicBoolean(false);
     private static final PDFBoxConfiguration pdfBoxConfiguration = new PDFBoxConfiguration();
+
+    public static void doNotConfigurePDFBox() {
+        if (configured.get()) {
+            LOG.warn(alreadyConfiguredWarn, "doNotConfigurePDFBox()");
+        }
+        pdfBoxConfiguration.enabled = false;
+    }
 
     public static void useKcmsServiceProvider(boolean use) {
         if (configured.get()) {
@@ -66,19 +75,23 @@ public final class PDFBoxConfigurer {
 
     static synchronized void configure() {
         configured.set(true);
-        if (pdfBoxConfiguration.useKcmsServiceProvider) {
-            LOG.info(
-                    "Configuring sun.java2d.cmm.kcms.KcmsServiceProvider as described at " +
-                    "https://pdfbox.apache.org/2.0/getting-started.html#pdfbox-and-java-8 " +
-                    "to increase PDF color operation.");
-            System.setProperty("sun.java2d.cmm", "sun.java2d.cmm.kcms.KcmsServiceProvider");
-        }
-        if (pdfBoxConfiguration.usePureJavaCMYKConversion) {
-            LOG.info(
-                    "Configuring org.apache.pdfbox.rendering.UsePureJavaCMYKConversion=true as described at " +
-                    "https://pdfbox.apache.org/2.0/getting-started.html#rendering-performance " +
-                    "to increase PDF rendering performance.");
-            System.setProperty("org.apache.pdfbox.rendering.UsePureJavaCMYKConversion", "true");
+        if (pdfBoxConfiguration.enabled) {
+            if (pdfBoxConfiguration.useKcmsServiceProvider) {
+                LOG.info(
+                        "Configuring sun.java2d.cmm=sun.java2d.cmm.kcms.KcmsServiceProvider as described at " +
+                        "https://pdfbox.apache.org/2.0/getting-started.html#pdfbox-and-java-8 " +
+                        "to increase PDF color operation.");
+                System.setProperty("sun.java2d.cmm", "sun.java2d.cmm.kcms.KcmsServiceProvider");
+            }
+            if (pdfBoxConfiguration.usePureJavaCMYKConversion) {
+                LOG.info(
+                        "Configuring org.apache.pdfbox.rendering.UsePureJavaCMYKConversion=true as described at " +
+                        "https://pdfbox.apache.org/2.0/getting-started.html#rendering-performance " +
+                        "to increase PDF rendering performance.");
+                System.setProperty("org.apache.pdfbox.rendering.UsePureJavaCMYKConversion", "true");
+            }
+        } else {
+            LOG.info("Using default settings for PDFBox for printability-validator library");
         }
     }
 
