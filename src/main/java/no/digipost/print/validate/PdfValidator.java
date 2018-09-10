@@ -16,7 +16,6 @@
 package no.digipost.print.validate;
 
 import no.digipost.print.validate.PdfValidationSettings.Bleed;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -40,10 +39,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.joining;
 import static no.digipost.print.validate.PdfValidationError.INSUFFICIENT_MARGIN_FOR_PRINT;
 import static no.digipost.print.validate.PdfValidationError.UNABLE_TO_VERIFY_SUITABLE_MARGIN_FOR_PRINT;
 import static no.digipost.print.validate.PdfValidationError.UNSUPPORTED_DIMENSIONS;
-import static org.apache.commons.lang3.StringUtils.join;
 
 
 public class PdfValidator {
@@ -174,24 +173,19 @@ public class PdfValidator {
         if (!nonSupportedFonts.isEmpty()) {
             errors.add(PdfValidationError.REFERENCES_INVALID_FONT);
             if (LOG.isInfoEnabled()) {
-                LOG.info("The PDF has references to invalid fonts: [{}]", join(describe(nonSupportedFonts), ", "));
+                LOG.info("The PDF has references to invalid fonts: [{}]", nonSupportedFonts.stream().map(this::describe).collect(joining(", ")));
             }
         }
     }
 
-    private List<String> describe(Iterable<PDFont> fonts) {
-        List<String> fontDescriptions = new ArrayList<>();
-        for (PDFont font : fonts) {
-            fontDescriptions.add(font.getSubType() + " '" + font.getName() + "'");
-        }
-        return fontDescriptions;
+    private String describe(PDFont font) {
+        return font.getSubType() + " '" + font.getName() + "'";
     }
 
     private void validatePdfVersion(float pdfVersion, List<PdfValidationError> errors) {
         if (!PDF_VERSIONS_SUPPORTED_FOR_PRINT.contains(pdfVersion)) {
             errors.add(PdfValidationError.UNSUPPORTED_PDF_VERSION_FOR_PRINT);
-            LOG.info("The PDF is not in valid version. Valid versions are {}. Actual version is {}",
-                    StringUtils.join(PDF_VERSIONS_SUPPORTED_FOR_PRINT, ", "), pdfVersion);
+            LOG.info("PDF version was {}. {}", pdfVersion, PdfValidationError.UNSUPPORTED_PDF_VERSION_FOR_PRINT);
         }
     }
 

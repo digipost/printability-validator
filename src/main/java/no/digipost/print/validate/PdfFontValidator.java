@@ -38,9 +38,6 @@ import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.concat;
-import static org.apache.commons.lang3.StringUtils.deleteWhitespace;
-import static org.apache.commons.lang3.StringUtils.remove;
-import static org.apache.commons.lang3.StringUtils.upperCase;
 
 class PdfFontValidator {
 
@@ -100,11 +97,14 @@ class PdfFontValidator {
         }
     }
 
+
+    private static final String DASH_AND_WHITESPACE = "[\\-\\s]+";
+
     private boolean erAkseptabelForPrint(String fontnavn) {
         if (fontnavn == null) {
             return false;
         }
-        String normalisertFontnavn = upperCase(deleteWhitespace(remove(fontnavn, "-")));
+        String normalisertFontnavn = fontnavn.replaceAll(DASH_AND_WHITESPACE, "").toUpperCase();
         for (String supportertFontnavn : SUPPORTED_FONTS) {
             if (normalisertFontnavn.contains(supportertFontnavn)) {
                 return true;
