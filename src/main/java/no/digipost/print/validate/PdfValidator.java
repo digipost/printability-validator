@@ -92,8 +92,7 @@ public class PdfValidator {
             errors = failValidationIfEncrypted(new ArrayList<>());
         } catch (Exception e) {
             errors = asList(PdfValidationError.PDF_PARSE_ERROR);
-            LOG.info("PDF could not be parsed. ({}: '{}')", e.getClass().getSimpleName(), e.getMessage());
-            LOG.debug(e.getMessage(), e);
+            LOG.debug("PDF could not be parsed. ({}: '{}')", e.getClass().getSimpleName(), e.getMessage(), e);
         }
 
         return new PdfValidationResult(errors, numberOfPages, printValidationSettings.bleed);
@@ -136,9 +135,9 @@ public class PdfValidator {
                         hasTextInBarcodeArea = true;
                         break;
                     }
-                } catch (NullPointerException npe) {
+                } catch (Exception npe) {
                     documentContainsPagesWithInvalidPrintMargins = true;
-                    LOG.info("Could not validate the margin on one of the sides");
+                    LOG.debug("Unable to validate the margin on one of the pages.", npe);
                 }
             }
         }
@@ -164,7 +163,7 @@ public class PdfValidator {
 
     private List<PdfValidationError> failValidationIfEncrypted(List<PdfValidationError> errors) {
         errors.add(PdfValidationError.PDF_IS_ENCRYPTED);
-        LOG.info("The pdf is encrypted.");
+        LOG.debug("The pdf is encrypted.");
         return errors;
     }
 
@@ -173,7 +172,7 @@ public class PdfValidator {
         if (!nonSupportedFonts.isEmpty()) {
             errors.add(PdfValidationError.REFERENCES_INVALID_FONT);
             if (LOG.isInfoEnabled()) {
-                LOG.info("The PDF has references to invalid fonts: [{}]", nonSupportedFonts.stream().map(this::describe).collect(joining(", ")));
+                LOG.debug("The PDF has references to invalid fonts: [{}]", nonSupportedFonts.stream().map(this::describe).collect(joining(", ")));
             }
         }
     }
@@ -192,11 +191,11 @@ public class PdfValidator {
     private void validerSideantall(int numberOfPages, int maxPages, final List<PdfValidationError> errors) {
         if (numberOfPages > maxPages) {
             errors.add(PdfValidationError.TOO_MANY_PAGES_FOR_AUTOMATED_PRINT);
-            LOG.info("The PDF has too many pages. Max number of pages is {}. Actual number of pages is {}", maxPages, numberOfPages);
+            LOG.debug("The PDF has too many pages. Max number of pages is {}. Actual number of pages is {}", maxPages, numberOfPages);
         }
         if (numberOfPages == 0) {
             errors.add(PdfValidationError.DOCUMENT_HAS_NO_PAGES);
-            LOG.info("The PDF document does not contain any pages. The file may be corrupt.", numberOfPages);
+            LOG.debug("The PDF document does not contain any pages. The file may be corrupt.", numberOfPages);
         }
     }
 
@@ -214,7 +213,7 @@ public class PdfValidator {
         long pageHeightInMillimeters = pointsTomm(findCropBox.getHeight());
         long pageWidthInMillimeters = pointsTomm(findCropBox.getWidth());
         if (!isPortraitA4(pageWidthInMillimeters, pageHeightInMillimeters, bleed) && !isLandscapeA4(pageWidthInMillimeters, pageHeightInMillimeters, bleed)) {
-            LOG.info("One or more pages in the PDF has invalid dimensions.  Valid dimensions are width {} mm and height {} mm, alt " +
+            LOG.debug("One or more pages in the PDF has invalid dimensions.  Valid dimensions are width {} mm and height {} mm, alt " +
                     "width {} mm og height {} mm with {} mm lower flexibility and {} upper flexibility. "
                     + "Actual dimensions are width: {} mm and height: {} mm.",
                     new Object[] { A4_WIDTH_MM, A4_HEIGHT_MM, A4_HEIGHT_MM, A4_WIDTH_MM, bleed.negativeBleedInMM,
