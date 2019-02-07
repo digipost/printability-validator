@@ -37,3 +37,7 @@ I SDP utskriftstjenesten er det satt opp en felles valideringskonfigurasjon. Den
 ```java
 PdfValidationSettings printValideringsinnstillinger = new PdfValidationSettings(false, true, false, true);
 ```
+
+## Releasing (kun for medlemmer av Digipost organisasjonen)
+
+Se docs/systemer/open-source-biblioteker.md
