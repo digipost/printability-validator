@@ -1,5 +1,8 @@
 # Digipost Printability Validator
 
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/no.digipost/printability-validator/badge.svg)](https://maven-badges.herokuapp.com/maven-central/no.digipost/printability-validator)
+[![Build Status](https://travis-ci.org/digipost/printability-validator.svg)](https://travis-ci.org/digipost/printability-validator)
+
 Formålet med dette biblioteket er å gi avsendere mulighet til å validere om et PDF dokument kan skrives ut av Digiposts utskriftstjeneste. Følgende valideringsregler eksisterer i biblioteket:
 
 * Det må eksistere en venstremarg på 18mm i PDF dokumentet.
@@ -35,4 +38,6 @@ I SDP utskriftstjenesten er det satt opp en felles valideringskonfigurasjon. Den
 PdfValidationSettings printValideringsinnstillinger = new PdfValidationSettings(false, true, false, true);
 ```
 
-[![Build Status](https://travis-ci.org/digipost/printability-validator.svg)](https://travis-ci.org/digipost/printability-validator)
+## Releasing (kun for medlemmer av Digipost organisasjonen)
+
+Se docs/systemer/open-source-biblioteker.md
