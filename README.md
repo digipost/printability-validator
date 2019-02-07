@@ -1,5 +1,7 @@
 # Digipost Printability Validator
 
+[![Build Status](https://travis-ci.org/digipost/printability-validator.svg)](https://travis-ci.org/digipost/printability-validator)
+
 Formålet med dette biblioteket er å gi avsendere mulighet til å validere om et PDF dokument kan skrives ut av Digiposts utskriftstjeneste. Følgende valideringsregler eksisterer i biblioteket:
 
 * Det må eksistere en venstremarg på 18mm i PDF dokumentet.
@@ -34,5 +36,3 @@ I SDP utskriftstjenesten er det satt opp en felles valideringskonfigurasjon. Den
 ```java
 PdfValidationSettings printValideringsinnstillinger = new PdfValidationSettings(false, true, false, true);
 ```
-
-[![Build Status](https://travis-ci.org/digipost/printability-validator.svg)](https://travis-ci.org/digipost/printability-validator)
