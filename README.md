@@ -1,7 +1,8 @@
-# Digipost Printability Validator
-
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/no.digipost/printability-validator/badge.svg)](https://maven-badges.herokuapp.com/maven-central/no.digipost/printability-validator)
-[![Build Status](https://travis-ci.org/digipost/printability-validator.svg)](https://travis-ci.org/digipost/printability-validator)
+![](https://github.com/digipost/printability-validator/workflows/Build%20snapshot/badge.svg)
+[![License](https://img.shields.io/badge/license-Apache%202-blue)](https://github.com/digipost/printability-validator/blob/master/LICENCE)
+
+# Digipost Printability Validator
 
 Formålet med dette biblioteket er å gi avsendere mulighet til å validere om et PDF dokument kan skrives ut av Digiposts utskriftstjeneste. Følgende valideringsregler eksisterer i biblioteket:
 
