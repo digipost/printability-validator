@@ -1,9 +1,0 @@
-dist: trusty
-cache:
-  directories:
-    - '$HOME/.m2/repository'
-
-language: java
-jdk:
-  - oraclejdk8
-
