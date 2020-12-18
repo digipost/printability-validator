@@ -1,6 +1,6 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/no.digipost/printability-validator/badge.svg)](https://maven-badges.herokuapp.com/maven-central/no.digipost/printability-validator)
-![](https://github.com/digipost/printability-validator/workflows/Build%20snapshot/badge.svg)
-[![License](https://img.shields.io/badge/license-Apache%202-blue)](https://github.com/digipost/printability-validator/blob/master/LICENCE)
+![](https://github.com/digipost/printability-validator/workflows/Build%20and%20deploy/badge.svg)
+[![License](https://img.shields.io/badge/license-Apache%202-blue)](https://github.com/digipost/printability-validator/blob/main/LICENCE)
 
 # Digipost Printability Validator
 
