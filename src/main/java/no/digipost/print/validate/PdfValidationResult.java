@@ -45,7 +45,19 @@ public final class PdfValidationResult {
         return !errors.isEmpty();
     }
 
-
+    public String formattedValidationErrorMessage(PdfValidationError validationError) {
+        if (validationError == PdfValidationError.UNSUPPORTED_DIMENSIONS) {
+            return String.format(
+                    PdfValidationError.UNSUPPORTED_DIMENSIONS.toString(),
+                    PdfValidator.A4_WIDTH_MM - bleed.negativeBleedInMM,
+                    PdfValidator.A4_WIDTH_MM + bleed.positiveBleedInMM,
+                    PdfValidator.A4_HEIGHT_MM - bleed.negativeBleedInMM,
+                    PdfValidator.A4_HEIGHT_MM + bleed.positiveBleedInMM
+            );
+        } else {
+            return validationError.toString();
+        }
+    }
 
     private String toStringValue;
 
@@ -55,14 +67,7 @@ public final class PdfValidationResult {
             StringBuilder sb = new StringBuilder("[");
             sb.append(getClass().getSimpleName());
             for (PdfValidationError printPdfValideringsFeil : errors) {
-                final String err;
-                if(printPdfValideringsFeil == PdfValidationError.UNSUPPORTED_DIMENSIONS) {
-                    err = String.format(PdfValidationError.UNSUPPORTED_DIMENSIONS.toString(), PdfValidator.A4_WIDTH_MM - bleed.negativeBleedInMM,
-                            PdfValidator.A4_WIDTH_MM + bleed.positiveBleedInMM, PdfValidator.A4_HEIGHT_MM - bleed.negativeBleedInMM, PdfValidator.A4_HEIGHT_MM + bleed.positiveBleedInMM);
-                } else {
-                    err = printPdfValideringsFeil.toString();
-                }
-
+                final String err = formattedValidationErrorMessage(printPdfValideringsFeil);
                 sb.append(" ");
                 sb.append(err);
             }

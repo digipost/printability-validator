@@ -31,6 +31,13 @@ Krav til PDF dokumenter er tilgjengelig på https://www.digipost.no/plattform/an
 
 Biblioteket er også tilgjengelig på [Maven Central](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22printability-validator%22).
 
+Feil ved validering av dimensjoner medfører `PdfValidationError` av typen `UNSUPPORTED_DIMENSIONS`.
+Den tilhørende meldingen inneholder variable parametre for margin og bleed. Fra og med versjon 3.3
+tilbyr `PdfValidationResult` en `formattedValidationErrorMessage`-metode for å kunne formatere denne
+feilmeldingen med riktig verdier. Denne formateringen skjedde tidligere kun i `PdfValidationResult`
+sin `toString`-metode. Den nevnte hjelpemetoden kan benyttes i sammenhenger det er er uønsket å
+benytte `toString`.
+
 ## For avsendere som sender til utskrift via offentlig Sikker Digital Post (SDP) meldingsformidlertjeneste.
 
 I SDP utskriftstjenesten er det satt opp en felles valideringskonfigurasjon. Den er som følger:

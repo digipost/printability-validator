@@ -33,12 +33,13 @@ import static no.digipost.print.validate.PdfValidationError.REFERENCES_INVALID_F
 import static no.digipost.print.validate.PdfValidationError.TOO_MANY_PAGES_FOR_AUTOMATED_PRINT;
 import static no.digipost.print.validate.PdfValidationError.UNSUPPORTED_DIMENSIONS;
 import static no.digipost.print.validate.PdfValidationSettings.CHECK_ALL;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 public class PrintPdfValidatorTest {
 
@@ -87,6 +88,20 @@ public class PrintPdfValidatorTest {
 
         assertThat(errorString, is("[" + PdfValidationResult.class.getSimpleName() + " " + String.format(UNSUPPORTED_DIMENSIONS.message,
                 PdfValidator.A4_WIDTH_MM - bleed.negativeBleedInMM, PdfValidator.A4_WIDTH_MM + bleed.positiveBleedInMM, PdfValidator.A4_HEIGHT_MM - bleed.negativeBleedInMM, PdfValidator.A4_HEIGHT_MM + bleed.positiveBleedInMM) + "]"));
+    }
+
+    @Test
+    public void errorMessageMethodReturnsPersonalizedBleedParameters() {
+        Bleed bleed = new Bleed(2, 3);
+        PdfValidationResult pdfValidationResult = new PdfValidationResult(validationErrors("/pdf/far-from-a4-free-barcode-area.pdf", new PdfValidationSettings(false, false, false, false, bleed.positiveBleedInMM, bleed.negativeBleedInMM)), 1, bleed);
+
+        PdfValidationError error = pdfValidationResult.errors.stream()
+                .filter(UNSUPPORTED_DIMENSIONS::equals)
+                .findAny().orElseThrow(() -> new RuntimeException("Expected unsupported dimensions validation error"));
+
+        String errorMessage = pdfValidationResult.formattedValidationErrorMessage(error);
+        assertThat(errorMessage, containsString(String.format("%d—%d", PdfValidator.A4_WIDTH_MM - bleed.negativeBleedInMM, PdfValidator.A4_WIDTH_MM + bleed.positiveBleedInMM)));
+        assertThat(errorMessage, containsString(String.format("%d—%d", PdfValidator.A4_HEIGHT_MM - bleed.negativeBleedInMM, PdfValidator.A4_HEIGHT_MM + bleed.positiveBleedInMM)));
     }
 
     @Test
