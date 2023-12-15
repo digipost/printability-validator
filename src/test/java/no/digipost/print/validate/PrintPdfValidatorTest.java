@@ -1,5 +1,5 @@
-/**
- * Copyright (C) Posten Norge AS
+/*
+ * Copyright (C) Posten Bring AS
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package no.digipost.print.validate;
 
 import no.digipost.print.validate.PdfValidationSettings.Bleed;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -113,13 +113,13 @@ public class PrintPdfValidatorTest {
 
     @Test
     public void failsPdfWithTooManyPagesForPrint() {
-        assertThat(validationErrors("/pdf/a4-20pages.pdf", CHECK_ALL), contains(TOO_MANY_PAGES_FOR_AUTOMATED_PRINT));
+        assertThat(validationErrors("/pdf/a4-21pages.pdf", CHECK_ALL), contains(TOO_MANY_PAGES_FOR_AUTOMATED_PRINT));
     }
 
     @Test
     public void doesNotFailPdfWithTooManyPagesForPrintIfCheckDisabled() {
         PdfValidationSettings innstillinger = new PdfValidationSettings(true, true, false, true);
-        assertThat(validationErrors("/pdf/a4-20pages.pdf", innstillinger), empty());
+        assertThat(validationErrors("/pdf/a4-21pages.pdf", innstillinger), empty());
     }
 
     @Test
@@ -158,9 +158,9 @@ public class PrintPdfValidatorTest {
 
     @Test
     public void pdfWithBogusFontsAndTooManyPages() {
-        assertThat(validationErrors("/pdf/15-pages-and-bogus-fonts.pdf", new PdfValidationSettings(true, false, false, true)), empty());
-        assertThat(validationErrors("/pdf/15-pages-and-bogus-fonts.pdf", new PdfValidationSettings(true, false, true, true)), contains(TOO_MANY_PAGES_FOR_AUTOMATED_PRINT));
-        assertThat(validationErrors("/pdf/15-pages-and-bogus-fonts.pdf", new PdfValidationSettings(true, true, false, true)), everyItem(is(REFERENCES_INVALID_FONT)));
+        assertThat(validationErrors("/pdf/21-pages-and-bogus-fonts.pdf", new PdfValidationSettings(true, false, false, true)), empty());
+        assertThat(validationErrors("/pdf/21-pages-and-bogus-fonts.pdf", new PdfValidationSettings(true, false, true, true)), contains(TOO_MANY_PAGES_FOR_AUTOMATED_PRINT));
+        assertThat(validationErrors("/pdf/21-pages-and-bogus-fonts.pdf", new PdfValidationSettings(true, true, false, true)), everyItem(is(REFERENCES_INVALID_FONT)));
     }
 
     @Test
