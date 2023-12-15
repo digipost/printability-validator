@@ -7,7 +7,7 @@
 Formålet med dette biblioteket er å gi avsendere mulighet til å validere om et PDF dokument kan skrives ut av Digiposts utskriftstjeneste. Følgende valideringsregler eksisterer i biblioteket:
 
 * Det må eksistere en venstremarg på 15mm i PDF dokumentet.
-* Maks sideantall på PDF dokumentet er 14 sider.
+* Maks sideantall på PDF dokumentet er 20 sider.
 * Fonter som ikke er standard fonter må embeddes i PDF dokumentet.
 * PDF versjon må være fra 1.0 til 1.5
 

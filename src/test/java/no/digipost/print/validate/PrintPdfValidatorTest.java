@@ -113,13 +113,13 @@ public class PrintPdfValidatorTest {
 
     @Test
     public void failsPdfWithTooManyPagesForPrint() {
-        assertThat(validationErrors("/pdf/a4-20pages.pdf", CHECK_ALL), contains(TOO_MANY_PAGES_FOR_AUTOMATED_PRINT));
+        assertThat(validationErrors("/pdf/a4-21pages.pdf", CHECK_ALL), contains(TOO_MANY_PAGES_FOR_AUTOMATED_PRINT));
     }
 
     @Test
     public void doesNotFailPdfWithTooManyPagesForPrintIfCheckDisabled() {
         PdfValidationSettings innstillinger = new PdfValidationSettings(true, true, false, true);
-        assertThat(validationErrors("/pdf/a4-20pages.pdf", innstillinger), empty());
+        assertThat(validationErrors("/pdf/a4-21pages.pdf", innstillinger), empty());
     }
 
     @Test
@@ -158,9 +158,9 @@ public class PrintPdfValidatorTest {
 
     @Test
     public void pdfWithBogusFontsAndTooManyPages() {
-        assertThat(validationErrors("/pdf/15-pages-and-bogus-fonts.pdf", new PdfValidationSettings(true, false, false, true)), empty());
-        assertThat(validationErrors("/pdf/15-pages-and-bogus-fonts.pdf", new PdfValidationSettings(true, false, true, true)), contains(TOO_MANY_PAGES_FOR_AUTOMATED_PRINT));
-        assertThat(validationErrors("/pdf/15-pages-and-bogus-fonts.pdf", new PdfValidationSettings(true, true, false, true)), everyItem(is(REFERENCES_INVALID_FONT)));
+        assertThat(validationErrors("/pdf/21-pages-and-bogus-fonts.pdf", new PdfValidationSettings(true, false, false, true)), empty());
+        assertThat(validationErrors("/pdf/21-pages-and-bogus-fonts.pdf", new PdfValidationSettings(true, false, true, true)), contains(TOO_MANY_PAGES_FOR_AUTOMATED_PRINT));
+        assertThat(validationErrors("/pdf/21-pages-and-bogus-fonts.pdf", new PdfValidationSettings(true, true, false, true)), everyItem(is(REFERENCES_INVALID_FONT)));
     }
 
     @Test

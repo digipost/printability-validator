@@ -23,7 +23,7 @@ public class PdfValidationSettings {
     public final boolean validateNumberOfPages;
     public final int maxNumberOfPages;
     public final boolean validatePDFversion;
-    public static final int STANDARD_MAX_PAGES_FOR_AUTOMATED_PRINT = 14;
+    public static final int STANDARD_MAX_PAGES_FOR_AUTOMATED_PRINT = 20;
     // The document is allowed to be x mm larger than a4 in width and height
     public static final int DEFAULT_POSITIVE_BLEED_MM = 0;
     // The document is allowed to be x mm smaller than a4 in width and height
