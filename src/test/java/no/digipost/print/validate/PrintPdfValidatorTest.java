@@ -1,5 +1,5 @@
-/**
- * Copyright (C) Posten Norge AS
+/*
+ * Copyright (C) Posten Bring AS
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package no.digipost.print.validate;
 
 import no.digipost.print.validate.PdfValidationSettings.Bleed;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.file.Path;
