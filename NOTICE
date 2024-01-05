@@ -1,6 +1,6 @@
 Digipost Printability Validator
 
-Copyright 2023 Posten Norge AS. All Rights Reserved.
+Copyright 2024 Posten Norge AS. All Rights Reserved.
 
 This product includes software developed by Posten Norge AS. - https://www.posten.no/
 Licensed under Apache 2 - http://www.apache.org/licenses/LICENSE-2.0.html
@@ -8,10 +8,18 @@ Licensed under Apache 2 - http://www.apache.org/licenses/LICENSE-2.0.html
 
 This software includes third party software subject to the following licenses:
 
-  Apache FontBox under Apache License, Version 2.0
-  Apache PDFBox under Apache License, Version 2.0
+  Apache FontBox under Apache-2.0
+  Apache PDFBox under Apache-2.0
+  Apache PDFBox io under Apache-2.0
   Digipost Printability Validator under The Apache Software License, Version 2.0
   JCL 1.2 implemented over SLF4J under Apache License, Version 2.0
+  JUnit Jupiter (Aggregator) under Eclipse Public License v2.0
+  JUnit Jupiter Engine under Eclipse Public License v2.0
+  JUnit Jupiter Params under Eclipse Public License v2.0
+  JUnit Platform Commons under Eclipse Public License v2.0
+  JUnit Platform Engine API under Eclipse Public License v2.0
+  org.apiguardian:apiguardian-api under The Apache License, Version 2.0
+  org.opentest4j:opentest4j under The Apache License, Version 2.0
   SLF4J API Module under MIT License
 
 

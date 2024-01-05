@@ -16,6 +16,9 @@
 package no.digipost.print.validate;
 
 import no.digipost.print.validate.PdfValidationSettings.Bleed;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.io.RandomAccessInputStream;
+import org.apache.pdfbox.io.RandomAccessReadBuffer;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -85,7 +88,7 @@ public class PdfValidator {
     private PdfValidationResult validateForPrint(InputStream pdfStream, PdfValidationSettings printValidationSettings) {
         int numberOfPages = -1;
         List<PdfValidationError> errors;
-        try (PDDocument pdDoc = PDDocument.load(pdfStream)) {
+        try (PDDocument pdDoc = Loader.loadPDF(new RandomAccessReadBuffer(pdfStream))) {
             numberOfPages = pdDoc.getNumberOfPages();
             errors = validateDocumentForPrint(pdDoc, printValidationSettings);
         } catch (InvalidPasswordException invalidPassword) {
@@ -195,7 +198,7 @@ public class PdfValidator {
         }
         if (numberOfPages == 0) {
             errors.add(PdfValidationError.DOCUMENT_HAS_NO_PAGES);
-            LOG.debug("The PDF document does not contain any pages. The file may be corrupt.", numberOfPages);
+            LOG.debug("The PDF document does not contain any pages. The file may be corrupt.");
         }
     }
 
@@ -243,7 +246,7 @@ public class PdfValidator {
         stripper.addRegion("marginArea", area);
         stripper.extractRegions(pdPage);
         String text = stripper.getTextForRegion("marginArea");
-        if (text != null && text.trim().length() > 0) {
+        if (text != null && !text.trim().isEmpty()) {
             hasTextInArea = true;
         }
         return hasTextInArea;
