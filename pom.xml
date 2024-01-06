@@ -33,7 +33,7 @@
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <slf4j-api.version>2.0.9</slf4j-api.version>
+        <slf4j-api.version>2.0.10</slf4j-api.version>
     </properties>
 
     <dependencies>
@@ -57,7 +57,18 @@
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
-            <version>2.0.27</version>
+            <version>3.0.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox-io</artifactId>
+            <version>3.0.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>commons-logging</groupId>
@@ -219,7 +230,8 @@
                                         <include>org.slf4j</include>
                                         <include>org.apache.commons:commons-lang3</include>
                                         <include>org.hamcrest</include>
-                                        <include>org.junit.jupiter:junit-jupiter-api</include>
+                                        <include>org.junit.jupiter:*</include>
+                                        <include>org.junit.platform:*</include>
                                         <include>org.opentest4j:opentest4j</include>
                                         <include>org.apiguardian:apiguardian-api</include>
                                         <include>org.junit.platform:junit-platform-commons</include>
