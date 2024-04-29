@@ -17,7 +17,6 @@ package no.digipost.print.validate;
 
 import no.digipost.print.validate.PdfValidationSettings.Bleed;
 import org.apache.pdfbox.Loader;
-import org.apache.pdfbox.io.RandomAccessInputStream;
 import org.apache.pdfbox.io.RandomAccessReadBuffer;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
